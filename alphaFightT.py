@@ -45,9 +45,14 @@ class LeafState(FightState):
 		self.facingLeft = True
 		self.idleImage = self.currentImage.copy()
 		self.attack1Image = [0,0,0,0,0,0]
+		self.stepImage = [0,0,0,0]
+		self.frame = 0
 		for i in range(1,6):
 			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i)+".bmp").convert()
 			self.attack1Image[i].set_colorkey(WHITE)
+		for i in range(0,4):
+			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
+			self.stepImage[i].set_colorkey(WHITE)
 	
 	def next(self, keypress):
 		if(self.state == "punch1"):
@@ -64,22 +69,61 @@ class LeafState(FightState):
 				self.currentImage = self.attack1Image[3]
 			elif(self.frame == 2):
 				self.currentImage = self.attack1Image[2]
-		elif(self.state == "idle"):
+		elif(self.state in ["idle", "leftForw", "leftBack", "rightForw", "rightBack"]):
 			if(keypress == pygame.K_COMMA):
 				self.state = "punch1"
 				self.frame = 0
 				self.currentImage = self.attack1Image[1]
 				self.move = (0,0)
-			elif(keypress == pygame.K_LEFT):
-				self.move = (-4,0)
-				if(not self.facingLeft):
-					self.facingLeft = True
-			elif(keypress == pygame.K_RIGHT):
-				self.move = (4,0)
-				if(self.facingLeft):
-					self.facingLeft = False
 			elif(keypress == pygame.K_UP):
+				self.state = "idle"
+				self.currentImage = self.idleImage
 				self.move = (0,0)
+				self.facingLeft = not self.facingLeft
+			elif(keypress == pygame.K_LEFT):
+				if(self.state == "idle"):
+					self.state = "leftForw"
+					self.frame = 0
+				elif(not self.facingLeft):
+					self.state = "rightBack"
+				else:
+					self.state = "leftForw"
+			elif(keypress == pygame.K_RIGHT):
+				if(self.state == "idle"):
+					self.state = "rightForw"
+					self.frame = 0
+				elif(self.facingLeft):
+					self.state = "leftBack"
+				else:
+					self.state = "rightForw"
+			if(self.state in ["leftForw", "rightForw"]):
+				self.frame += 1
+			elif(self.state in ["leftBack", "rightBack"]):
+				self.frame -= 1
+			moveFrame = False
+			if(self.frame == -1):
+				self.frame = 10
+				moveFrame = True
+			elif(self.frame == 11):
+				self.frame = 0
+				moveFrame = True
+			if(self.frame in [0,1,2,10]):
+				self.currentImage = self.stepImage[0]
+			elif(self.frame in [4,3]):
+				self.currentImage = self.stepImage[1]
+			elif(self.frame in [5,6]):
+				self.currentImage = self.stepImage[2]
+			elif(self.frame in [7,8,9]):
+				self.currentImage = self.stepImage[3]
+			if(moveFrame):
+				if(self.state in ["leftForw","rightBack"]):
+					self.move = (-16,0)
+				else:
+					self.move = (16,0)
+			else:
+				self.move = (0,0)
+				
+			
 				
 	def getMovement(self):
 		return self.move
