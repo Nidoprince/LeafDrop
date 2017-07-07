@@ -39,13 +39,14 @@ class FightState():
 
 class LeafState(FightState):
 	def __init__(self):
-		FightState.__init__(self,"Leaf1.bmp")
+		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp")
 		self.state = "idle"
 		self.move = (0,0)
 		self.facingLeft = True
 		self.idleImage = self.currentImage.copy()
 		self.attack1Image = [0,0,0,0,0,0]
 		self.stepImage = [0,0,0,0]
+		self.breathImage = [0,0,0]
 		self.frame = 0
 		for i in range(1,6):
 			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i)+".bmp").convert()
@@ -53,6 +54,10 @@ class LeafState(FightState):
 		for i in range(0,4):
 			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
 			self.stepImage[i].set_colorkey(WHITE)
+		for i in range(0,3):
+			self.breathImage[i] = pygame.image.load("LeafBreath/LeafBrthFrm"+str(i+1)+".bmp").convert()
+			self.breathImage[i].set_colorkey(WHITE)
+		
 	
 	def next(self, keypress):
 		if(self.state == "punch1"):
@@ -96,32 +101,42 @@ class LeafState(FightState):
 					self.state = "leftBack"
 				else:
 					self.state = "rightForw"
-			if(self.state in ["leftForw", "rightForw"]):
-				self.frame += 1
-			elif(self.state in ["leftBack", "rightBack"]):
-				self.frame -= 1
-			moveFrame = False
-			if(self.frame == -1):
-				self.frame = 10
-				moveFrame = True
-			elif(self.frame == 11):
-				self.frame = 0
-				moveFrame = True
-			if(self.frame in [0,1,2,10]):
-				self.currentImage = self.stepImage[0]
-			elif(self.frame in [4,3]):
-				self.currentImage = self.stepImage[1]
-			elif(self.frame in [5,6]):
-				self.currentImage = self.stepImage[2]
-			elif(self.frame in [7,8,9]):
-				self.currentImage = self.stepImage[3]
-			if(moveFrame):
-				if(self.state in ["leftForw","rightBack"]):
-					self.move = (-16,0)
+			
+			if(self.state == "idle"):
+				self.frame = (self.frame + 1)%40
+				if(self.frame in [25,26,27,37,38,39]):
+					self.currentImage = self.breathImage[1]
+				elif(self.frame in range(28,37)):
+					self.currentImage = self.breathImage[2]
 				else:
-					self.move = (16,0)
+					self.currentImage = self.breathImage[0]
 			else:
-				self.move = (0,0)
+				if(self.state in ["leftForw", "rightForw"]):
+					self.frame += 1
+				elif(self.state in ["leftBack", "rightBack"]):
+					self.frame -= 1
+				moveFrame = False
+				if(self.frame == -1):
+					self.frame = 10
+					moveFrame = True
+				elif(self.frame == 11):
+					self.frame = 0
+					moveFrame = True
+				if(self.frame in [0,1,2,10]):
+					self.currentImage = self.stepImage[0]
+				elif(self.frame in [4,3]):
+					self.currentImage = self.stepImage[1]
+				elif(self.frame in [5,6]):
+					self.currentImage = self.stepImage[2]
+				elif(self.frame in [7,8,9]):
+					self.currentImage = self.stepImage[3]
+				if(moveFrame):
+					if(self.state in ["leftForw","rightBack"]):
+						self.move = (-16,0)
+					else:
+						self.move = (16,0)
+				else:
+					self.move = (0,0)
 				
 			
 				
