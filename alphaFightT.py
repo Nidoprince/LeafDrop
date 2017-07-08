@@ -48,6 +48,8 @@ class LeafState(FightState):
 		self.stepImage = [0,0,0,0]
 		self.breathImage = [0,0,0]
 		self.frame = 0
+		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
+		self.crouchImage.set_colorkey(WHITE)
 		for i in range(1,6):
 			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i)+".bmp").convert()
 			self.attack1Image[i].set_colorkey(WHITE)
@@ -74,7 +76,7 @@ class LeafState(FightState):
 				self.currentImage = self.attack1Image[3]
 			elif(self.frame == 2):
 				self.currentImage = self.attack1Image[2]
-		elif(self.state in ["idle", "leftForw", "leftBack", "rightForw", "rightBack"]):
+		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
 			if(keypress == pygame.K_COMMA):
 				self.state = "punch1"
 				self.frame = 0
@@ -85,6 +87,10 @@ class LeafState(FightState):
 				self.currentImage = self.idleImage
 				self.move = (0,0)
 				self.facingLeft = not self.facingLeft
+			elif(keypress == pygame.K_DOWN):
+				self.state = "crouch"
+				self.currentImage = self.crouchImage
+				self.move = (0,0)
 			elif(keypress == pygame.K_LEFT):
 				if(self.state == "idle"):
 					self.state = "leftForw"
@@ -110,6 +116,8 @@ class LeafState(FightState):
 					self.currentImage = self.breathImage[2]
 				else:
 					self.currentImage = self.breathImage[0]
+			elif(self.state == "crouch"):
+				self.frame = 0
 			else:
 				if(self.state in ["leftForw", "rightForw"]):
 					self.frame += 1
@@ -183,6 +191,8 @@ while 1:
 			if event.key == pygame.K_UP:
 				keypress = event.key
 			if event.key == pygame.K_COMMA:
+				keypress = event.key
+			if event.key == pygame.K_DOWN:
 				keypress = event.key
 	
 	leaf.update(keypress)
