@@ -139,9 +139,9 @@ class LeafState(FightState):
 					self.currentImage = self.stepImage[3]
 				if(moveFrame):
 					if(self.state in ["leftForw","rightBack"]):
-						self.move = (-14,0)
+						self.move = (-1*walkSpeed,0)
 					else:
-						self.move = (14,0)
+						self.move = (walkSpeed,0)
 				else:
 					self.move = (0,0)
 				
@@ -164,6 +164,8 @@ WHITE = (255, 255, 255)
 BLUE =  (  0,   0, 255)
 GREEN = (  0, 255,   0)
 RED =   (255,   0,   0)
+
+walkSpeed = 14
 
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
