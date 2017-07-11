@@ -1,11 +1,12 @@
 import pygame
 
 class Fighter(pygame.sprite.Sprite):
-	def __init__(self, fightState, width, height):
+	def __init__(self, fightState, x, y):
 		pygame.sprite.Sprite.__init__(self)
 		self.state = fightState
 		self.image = self.state.getImage()
 		self.rect = self.image.get_rect()
+		self.rect = self.rect.move(x,y)
 		self.hitbox = self.state.getHit()
 		self.hurtbox = self.state.getHurt()
 		self.stopbox = self.state.getStopBox()
@@ -169,14 +170,9 @@ RED =   (255,   0,   0)
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 pygame.key.set_repeat(500, 20)
-
-#leaf = pygame.image.load("Leaf1.bmp").convert()
-#leaf.set_colorkey(WHITE)
-#leaf = pygame.transform.scale2x(leaf)
-#leafPos = [400, 100]
-#leafMove = [0,0]
-#leafFaceLeft = True
-leaf = Fighter(LeafState(),100,100)
+forestStage = pygame.image.load("ForestStage.bmp").convert()
+stage = forestStage
+leaf = Fighter(LeafState(),500,170)
 
 while 1:
 	clock.tick(30)
@@ -197,6 +193,6 @@ while 1:
 	
 	leaf.update(keypress)
 		
-	screen.fill(GREEN)
+	screen.blit(stage, (0,0))
 	screen.blit(leaf.image,leaf.rect)
 	pygame.display.flip()
