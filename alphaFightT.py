@@ -94,17 +94,15 @@ class LeafState(FightState):
 				self.move = (0,0)
 			elif(keypress == pygame.K_LEFT):
 				if(self.state == "idle"):
-					self.state = "leftForw"
 					self.frame = 0
-				elif(not self.facingLeft):
+				if(not self.facingLeft):
 					self.state = "rightBack"
 				else:
 					self.state = "leftForw"
 			elif(keypress == pygame.K_RIGHT):
 				if(self.state == "idle"):
-					self.state = "rightForw"
 					self.frame = 0
-				elif(self.facingLeft):
+				if(self.facingLeft):
 					self.state = "leftBack"
 				else:
 					self.state = "rightForw"
@@ -131,19 +129,19 @@ class LeafState(FightState):
 				elif(self.frame == 11):
 					self.frame = 0
 					moveFrame = True
-				if(self.frame in [0,1,2,10]):
+				if(self.frame in [0,1,2]):
 					self.currentImage = self.stepImage[0]
 				elif(self.frame in [4,3]):
 					self.currentImage = self.stepImage[1]
-				elif(self.frame in [5,6]):
+				elif(self.frame in [5,6,7]):
 					self.currentImage = self.stepImage[2]
-				elif(self.frame in [7,8,9]):
+				elif(self.frame in [8,9,10]):
 					self.currentImage = self.stepImage[3]
 				if(moveFrame):
 					if(self.state in ["leftForw","rightBack"]):
-						self.move = (-16,0)
+						self.move = (-14,0)
 					else:
-						self.move = (16,0)
+						self.move = (14,0)
 				else:
 					self.move = (0,0)
 				
