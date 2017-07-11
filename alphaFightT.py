@@ -20,9 +20,9 @@ class Fighter(pygame.sprite.Sprite):
 		self.rect = self.rect.move(self.state.getMovement())
 		
 class FightState():
-	def __init__(self,imageLoc):
+	def __init__(self,imageLoc,color):
 		self.currentImage = pygame.image.load(imageLoc).convert()
-		self.currentImage.set_colorkey(WHITE)
+		self.currentImage.set_colorkey(color)
 		
 	def getImage(self):
 		return self.currentImage
@@ -40,7 +40,7 @@ class FightState():
 
 class LeafState(FightState):
 	def __init__(self):
-		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp")
+		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp",RED)
 		self.state = "idle"
 		self.move = (0,0)
 		self.facingLeft = True
@@ -50,16 +50,16 @@ class LeafState(FightState):
 		self.breathImage = [0,0,0]
 		self.frame = 0
 		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
-		self.crouchImage.set_colorkey(WHITE)
+		self.crouchImage.set_colorkey(RED)
 		for i in range(1,6):
 			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i)+".bmp").convert()
-			self.attack1Image[i].set_colorkey(WHITE)
+			self.attack1Image[i].set_colorkey(RED)
 		for i in range(0,4):
 			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
-			self.stepImage[i].set_colorkey(WHITE)
+			self.stepImage[i].set_colorkey(RED)
 		for i in range(0,3):
 			self.breathImage[i] = pygame.image.load("LeafBreath/LeafBrthFrm"+str(i+1)+".bmp").convert()
-			self.breathImage[i].set_colorkey(WHITE)
+			self.breathImage[i].set_colorkey(RED)
 		
 	
 	def next(self, keypress):
