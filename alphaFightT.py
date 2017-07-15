@@ -1,5 +1,7 @@
 import pygame
 
+frameRate = 30
+
 class Fighter(pygame.sprite.Sprite):
 	def __init__(self, fightState, x, y):
 		pygame.sprite.Sprite.__init__(self)
@@ -46,6 +48,7 @@ class LeafState(FightState):
 		self.facingLeft = True
 		self.idleImage = self.currentImage.copy()
 		self.attack1Image = [0,0,0,0,0,0]
+		self.cAttack1Image = [0,0,0,0,0,0]
 		self.stepImage = [0,0,0,0]
 		self.breathImage = [0,0,0]
 		self.frame = 0
@@ -54,6 +57,9 @@ class LeafState(FightState):
 		for i in range(1,6):
 			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i)+".bmp").convert()
 			self.attack1Image[i].set_colorkey(RED)
+		for i in range(1,6):
+			self.cAttack1Image[i] = pygame.image.load("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i)+".bmp").convert()
+			self.cAttack1Image[i].set_colorkey(RED)
 		for i in range(0,4):
 			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
 			self.stepImage[i].set_colorkey(RED)
@@ -77,11 +83,29 @@ class LeafState(FightState):
 				self.currentImage = self.attack1Image[3]
 			elif(self.frame == 2):
 				self.currentImage = self.attack1Image[2]
+		elif(self.state == "cPunch1"):
+			self.frame += 1
+			if(self.frame == 10):
+				self.state = "crouch"
+				self.frame = 0
+				self.currentImage = self.crouchImage
+			elif(self.frame == 5):
+				self.currentImage = self.cAttack1Image[5]
+			elif(self.frame == 4):
+				self.currentImage = self.cAttack1Image[4]
+			elif(self.frame == 3):
+				self.currentImage = self.cAttack1Image[3]
+			elif(self.frame == 2):
+				self.currentImage = self.cAttack1Image[2]
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
 			if(keypress == pygame.K_COMMA):
-				self.state = "punch1"
+				if(self.state == "crouch"):
+					self.state = "cPunch1"
+					self.currentImage = self.cAttack1Image[1]
+				else:
+					self.state = "punch1"
+					self.currentImage = self.attack1Image[1]
 				self.frame = 0
-				self.currentImage = self.attack1Image[1]
 				self.move = (0,0)
 			elif(keypress == pygame.K_UP):
 				self.state = "idle"
@@ -117,6 +141,8 @@ class LeafState(FightState):
 					self.currentImage = self.breathImage[0]
 			elif(self.state == "crouch"):
 				self.frame = 0
+			elif(self.state in ["punch1","cPunch1"]):
+				True
 			else:
 				if(self.state in ["leftForw", "rightForw"]):
 					self.frame += 1
@@ -175,7 +201,7 @@ stage = forestStage
 leaf = Fighter(LeafState(),500,170)
 
 while 1:
-	clock.tick(30)
+	clock.tick(frameRate)
 	keypress = None
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: sys.exit()
