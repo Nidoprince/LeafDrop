@@ -51,7 +51,10 @@ class LeafState(FightState):
 		self.cAttack1Image = [0,0,0,0,0,0]
 		self.stepImage = [0,0,0,0]
 		self.breathImage = [0,0,0]
+		self.jumpImage = [0,0]
 		self.frame = 0
+		self.jumpV = 0
+		self.orth = 0
 		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
 		self.crouchImage.set_colorkey(RED)
 		for i in range(1,6):
@@ -66,6 +69,9 @@ class LeafState(FightState):
 		for i in range(0,3):
 			self.breathImage[i] = pygame.image.load("LeafBreath/LeafBrthFrm"+str(i+1)+".bmp").convert()
 			self.breathImage[i].set_colorkey(RED)
+		for i in range(0,2):
+			self.jumpImage[i] = pygame.image.load("LeafJump/LeafJmpFrm"+str(i+1)+".bmp").convert()
+			self.jumpImage[i].set_colorkey(RED)
 		
 	
 	def next(self, keypress):
@@ -97,6 +103,8 @@ class LeafState(FightState):
 				self.currentImage = self.cAttack1Image[3]
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack1Image[2]
+		elif(self.state == "jumping"):
+			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
 			if(keypress == pygame.K_COMMA):
 				if(self.state == "crouch"):
@@ -108,6 +116,11 @@ class LeafState(FightState):
 				self.frame = 0
 				self.move = (0,0)
 			elif(keypress == pygame.K_UP):
+				self.state = "jumping"
+				self.frame = 0
+				self.move = (0,0)
+				self.jumpV = 11
+			elif(keypress == pygame.K_PERIOD):
 				self.state = "idle"
 				self.currentImage = self.idleImage
 				self.move = (0,0)
@@ -170,7 +183,27 @@ class LeafState(FightState):
 						self.move = (walkSpeed,0)
 				else:
 					self.move = (0,0)
-				
+					
+	def nextJump(self, keypress):
+		self.frame += 1
+		if(self.frame >= 28):
+			self.state = "idle"
+			self.frame = 0
+		elif(self.frame<5 or self.frame>=26):
+			self.currentImage = self.jumpImage[0]
+			self.move = (0,0)
+			self.orth = 0
+		else:
+			self.currentImage = self.jumpImage[1]
+			self.jumpV -= 1
+			if(keypress == pygame.K_RIGHT):
+				self.orth = 2
+			elif(keypress == pygame.K_LEFT):
+				self.orth = -2
+			elif(keypress == pygame.K_DOWN):
+				self.orth = 0
+			self.move = (self.orth,-self.jumpV)
+			
 			
 				
 	def getMovement(self):
@@ -213,6 +246,8 @@ while 1:
 			if event.key == pygame.K_UP:
 				keypress = event.key
 			if event.key == pygame.K_COMMA:
+				keypress = event.key
+			if event.key == pygame.K_PERIOD:
 				keypress = event.key
 			if event.key == pygame.K_DOWN:
 				keypress = event.key
