@@ -52,7 +52,9 @@ class LeafState(FightState):
 		self.stepImage = [0,0,0,0]
 		self.breathImage = [0,0,0]
 		self.jumpImage = [0,0]
+		self.jAttack1Image = [0,0,0,0]
 		self.frame = 0
+		self.frame2 = 0
 		self.jumpV = 0
 		self.orth = 0
 		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
@@ -72,6 +74,9 @@ class LeafState(FightState):
 		for i in range(0,2):
 			self.jumpImage[i] = pygame.image.load("LeafJump/LeafJmpFrm"+str(i+1)+".bmp").convert()
 			self.jumpImage[i].set_colorkey(RED)
+		for i in range(0,4):
+			self.jAttack1Image[i] = pygame.image.load("LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".bmp").convert()
+			self.jAttack1Image[i].set_colorkey(RED)
 		
 	
 	def next(self, keypress):
@@ -103,7 +108,7 @@ class LeafState(FightState):
 				self.currentImage = self.cAttack1Image[3]
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack1Image[2]
-		elif(self.state == "jumping"):
+		elif(self.state in["jumping","jPunch1"]):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
 			if(keypress == pygame.K_COMMA):
@@ -193,10 +198,28 @@ class LeafState(FightState):
 			self.currentImage = self.jumpImage[0]
 			self.move = (0,0)
 			self.orth = 0
+			self.state = "jumping"
+			self.frame2 = 0
 		else:
-			self.currentImage = self.jumpImage[1]
+			if(self.state == "jumping"):
+				self.currentImage = self.jumpImage[1]
+			elif(self.state == "jPunch1"):
+				self.frame2+=1
+				if(self.frame2 == 10):
+					self.state = "jumping"
+				elif(self.frame2 == 6):
+					self.currentImage = self.jAttack1Image[3]
+				elif(self.frame2 == 5):
+					self.currentImage = self.jAttack1Image[2]
+				elif(self.frame2 == 3):
+					self.currentImage = self.jAttack1Image[1]
+				elif(self.frame2 == 1):
+					self.currentImage = self.jAttack1Image[0]
 			self.jumpV -= 1
-			if(keypress == pygame.K_RIGHT):
+			if(keypress == pygame.K_COMMA and self.state == "jumping"):
+				self.state = "jPunch1"
+				self.frame2 = 0
+			elif(keypress == pygame.K_RIGHT):
 				self.orth = 2
 			elif(keypress == pygame.K_LEFT):
 				self.orth = -2
