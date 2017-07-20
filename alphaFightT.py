@@ -53,6 +53,7 @@ class LeafState(FightState):
 		self.breathImage = [0,0,0]
 		self.jumpImage = [0,0]
 		self.jAttack1Image = [0,0,0,0]
+		self.jAttack2Image = [0,0]
 		self.frame = 0
 		self.frame2 = 0
 		self.jumpV = 0
@@ -77,6 +78,9 @@ class LeafState(FightState):
 		for i in range(0,4):
 			self.jAttack1Image[i] = pygame.image.load("LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".bmp").convert()
 			self.jAttack1Image[i].set_colorkey(RED)
+		for i in range(0,2):
+			self.jAttack2Image[i] = pygame.image.load("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".bmp").convert()
+			self.jAttack2Image[i].set_colorkey(RED)
 		
 	
 	def next(self, keypress):
@@ -108,7 +112,7 @@ class LeafState(FightState):
 				self.currentImage = self.cAttack1Image[3]
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack1Image[2]
-		elif(self.state in["jumping","jPunch1"]):
+		elif(self.state in["jumping","jPunch1","jKick1"]):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
 			if(keypress == pygame.K_COMMA):
@@ -215,9 +219,20 @@ class LeafState(FightState):
 					self.currentImage = self.jAttack1Image[1]
 				elif(self.frame2 == 1):
 					self.currentImage = self.jAttack1Image[0]
+			elif(self.state == "jKick1"):
+				self.frame2+=1
+				if(self.frame2==20):
+					self.state = "jumping"
+				elif(self.frame == 1):
+					self.currentImage = self.jAttack2Image[0]
+				else:
+					self.currentImage = self.jAttack2Image[1]
 			self.jumpV -= 1
 			if(keypress == pygame.K_COMMA and self.state == "jumping"):
 				self.state = "jPunch1"
+				self.frame2 = 0
+			elif(keypress == pygame.K_PERIOD and self.state == "jumping"):
+				self.state = "jKick1"
 				self.frame2 = 0
 			elif(keypress == pygame.K_RIGHT):
 				self.orth = 2
