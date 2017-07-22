@@ -22,13 +22,19 @@ class Fighter(pygame.sprite.Sprite):
 		self.rect = self.rect.move(self.state.getMovement())
 		
 class FightState():
-	def __init__(self,imageLoc,color):
+	def __init__(self,imageLoc,color,left):
 		self.currentImage = pygame.image.load(imageLoc).convert()
 		self.currentImage.set_colorkey(color)
+		self.facingLeft = left
 		
 	def getImage(self):
-		return self.currentImage
+		if(self.facingLeft):
+			return self.currentImage
+		else:
+			return pygame.transform.flip(self.currentImage, True, False)
 	
+	def setFacing(self,isLeft):
+		self.facingLeft = isLeft
 	def next(self, keypress):
 		return
 	def getHit(self):
@@ -41,14 +47,15 @@ class FightState():
 		return (0,0)
 
 class LeafState(FightState):
-	def __init__(self):
-		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp",RED)
+	def __init__(self,left):
+		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp",RED,left)
 		self.state = "idle"
 		self.move = (0,0)
-		self.facingLeft = True
 		self.idleImage = self.currentImage.copy()
-		self.attack1Image = [0,0,0,0,0,0]
-		self.cAttack1Image = [0,0,0,0,0,0]
+		self.attack1Image = [0,0,0,0,0]
+		self.attack2Image = [0,0]
+		self.cAttack1Image = [0,0,0,0,0]
+		self.cAttack2Image = [0,0]
 		self.stepImage = [0,0,0,0]
 		self.breathImage = [0,0,0]
 		self.jumpImage = [0,0]
@@ -60,12 +67,18 @@ class LeafState(FightState):
 		self.orth = 0
 		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
 		self.crouchImage.set_colorkey(RED)
-		for i in range(1,6):
-			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i)+".bmp").convert()
+		for i in range(0,5):
+			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i+1)+".bmp").convert()
 			self.attack1Image[i].set_colorkey(RED)
-		for i in range(1,6):
-			self.cAttack1Image[i] = pygame.image.load("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i)+".bmp").convert()
+		for i in range(0,2):
+			self.attack2Image[i] = pygame.image.load("LeafAttack2/LeafAtk2Frm"+str(i+1)+".bmp").convert()
+			self.attack2Image[i].set_colorkey(RED)
+		for i in range(0,5):
+			self.cAttack1Image[i] = pygame.image.load("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".bmp").convert()
 			self.cAttack1Image[i].set_colorkey(RED)
+		for i in range(0,2):
+			self.cAttack2Image[i] = pygame.image.load("LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".bmp").convert()
+			self.cAttack2Image[i].set_colorkey(RED)
 		for i in range(0,4):
 			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
 			self.stepImage[i].set_colorkey(RED)
@@ -91,13 +104,21 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.idleImage
 			elif(self.frame == 6):
-				self.currentImage = self.attack1Image[5]
-			elif(self.frame == 5):
 				self.currentImage = self.attack1Image[4]
-			elif(self.frame == 4):
+			elif(self.frame == 5):
 				self.currentImage = self.attack1Image[3]
-			elif(self.frame == 2):
+			elif(self.frame == 4):
 				self.currentImage = self.attack1Image[2]
+			elif(self.frame == 2):
+				self.currentImage = self.attack1Image[1]
+		elif(self.state == "kick1"):
+			self.frame += 1
+			if(self.frame == 15):
+				self.state = "idle"
+				self.frame = 0
+				self.currentImage = self.idleImage
+			elif(self.frame == 3):
+				self.currentImage = self.attack2Image[1]
 		elif(self.state == "cPunch1"):
 			self.frame += 1
 			if(self.frame == 10):
@@ -105,13 +126,21 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.crouchImage
 			elif(self.frame == 5):
-				self.currentImage = self.cAttack1Image[5]
-			elif(self.frame == 4):
 				self.currentImage = self.cAttack1Image[4]
-			elif(self.frame == 3):
+			elif(self.frame == 4):
 				self.currentImage = self.cAttack1Image[3]
-			elif(self.frame == 2):
+			elif(self.frame == 3):
 				self.currentImage = self.cAttack1Image[2]
+			elif(self.frame == 2):
+				self.currentImage = self.cAttack1Image[1]
+		elif(self.state == "cKick1"):
+			self.frame += 1
+			if(self.frame == 15):
+				self.state = "crouch"
+				self.frame = 0
+				self.currentImage = self.crouchImage
+			elif(self.frame == 2):
+				self.currentImage = self.cAttack2Image[1]
 		elif(self.state in["jumping","jPunch1","jKick1"]):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
@@ -130,10 +159,14 @@ class LeafState(FightState):
 				self.move = (0,0)
 				self.jumpV = 11
 			elif(keypress == pygame.K_PERIOD):
-				self.state = "idle"
-				self.currentImage = self.idleImage
+				if(self.state == "crouch"):
+					self.state = "cKick1"
+					self.currentImage = self.cAttack2Image[0]
+				else:
+					self.state = "kick1"
+					self.currentImage = self.attack2Image[0]
+				self.frame = 0
 				self.move = (0,0)
-				self.facingLeft = not self.facingLeft
 			elif(keypress == pygame.K_DOWN):
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
@@ -163,7 +196,7 @@ class LeafState(FightState):
 					self.currentImage = self.breathImage[0]
 			elif(self.state == "crouch"):
 				self.frame = 0
-			elif(self.state in ["punch1","cPunch1"]):
+			elif(self.state in ["punch1","kick1","cPunch1","cKick1"]):
 				True
 			else:
 				if(self.state in ["leftForw", "rightForw"]):
@@ -247,12 +280,6 @@ class LeafState(FightState):
 	def getMovement(self):
 		return self.move
 		
-	def getImage(self):
-		if(self.facingLeft):
-			return self.currentImage
-		else:
-			return pygame.transform.flip(self.currentImage, True, False)
-				
 		
 
 size = width, height = 600, 300
@@ -269,7 +296,10 @@ clock = pygame.time.Clock()
 pygame.key.set_repeat(500, 20)
 forestStage = pygame.image.load("ForestStage.bmp").convert()
 stage = forestStage
-leaf = Fighter(LeafState(),500,170)
+leaf = Fighter(LeafState(True),500,170)
+clone = Fighter(FightState("LeafBreath/LeafBrthFrm1.bmp",RED,False),300,170)
+player1 = leaf
+player2 = clone
 
 while 1:
 	clock.tick(frameRate)
@@ -290,8 +320,17 @@ while 1:
 			if event.key == pygame.K_DOWN:
 				keypress = event.key
 	
-	leaf.update(keypress)
+	player1.update(keypress)
+	player2.update(keypress)
+	
+	if(player1.rect[0]<player2.rect[0]):
+		player1.state.setFacing(False)
+		player2.state.setFacing(True)
+	else:
+		player1.state.setFacing(True)
+		player2.state.setFacing(False)
 		
 	screen.blit(stage, (0,0))
-	screen.blit(leaf.image,leaf.rect)
+	screen.blit(player1.image,player1.rect)
+	screen.blit(player2.image,player2.rect)
 	pygame.display.flip()
