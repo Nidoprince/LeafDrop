@@ -50,6 +50,12 @@ class LeafState(FightState):
 	def __init__(self,left):
 		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp",RED,left)
 		self.state = "idle"
+		self.holdingU = False
+		self.holdingD = False
+		self.holdingL = False
+		self.holdingR = False
+		self.holdingP = False
+		self.holdingK = False
 		self.move = (0,0)
 		self.idleImage = self.currentImage.copy()
 		self.attack1Image = [0,0,0,0,0]
@@ -97,6 +103,12 @@ class LeafState(FightState):
 		
 	
 	def next(self, keypress):
+		if(keypress == "leftD"):self.holdingL=True
+		if(keypress == "leftU"):self.holdingL=False
+		if(keypress == "rightD"):self.holdingR=True
+		if(keypress == "rightU"):self.holdingR=False
+		if(keypress == "downD"):self.holdingD=True
+		if(keypress == "downU"):self.holdingD=False
 		if(self.state == "punch1"):
 			self.frame += 1
 			if(self.frame == 15):
@@ -167,24 +179,26 @@ class LeafState(FightState):
 					self.currentImage = self.attack2Image[0]
 				self.frame = 0
 				self.move = (0,0)
-			elif(keypress == "downD"):
+			elif(self.holdingD):
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
 				self.move = (0,0)
-			elif(keypress == "leftD"):
+			elif(self.holdingL and not self.holdingR):
 				if(self.state == "idle"):
 					self.frame = 0
 				if(not self.facingLeft):
 					self.state = "rightBack"
 				else:
 					self.state = "leftForw"
-			elif(keypress == "rightD"):
+			elif(self.holdingR and not self.holdingL):
 				if(self.state == "idle"):
 					self.frame = 0
 				if(self.facingLeft):
 					self.state = "leftBack"
 				else:
 					self.state = "rightForw"
+			else:
+				self.state = "idle"
 			
 			if(self.state == "idle"):
 				self.frame = (self.frame + 1)%40
@@ -267,11 +281,11 @@ class LeafState(FightState):
 			elif(keypress == "kickD" and self.state == "jumping"):
 				self.state = "jKick1"
 				self.frame2 = 0
-			elif(keypress == "rightD"):
+			elif(self.holdingR and not self.holdingL):
 				self.orth = 2
-			elif(keypress == "leftD"):
+			elif(self.holdingL and not self.holdingR):
 				self.orth = -2
-			elif(keypress == "downD"):
+			else:
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
 			
@@ -332,6 +346,32 @@ while 1:
 				keypressA = "kickD"
 			if event.key == pygame.K_s:
 				keypressA = "downD"
+		if event.type == pygame.KEYUP:
+			if event.key == pygame.K_LEFT:
+				keypressB = "leftU"
+			if event.key == pygame.K_RIGHT:
+				keypressB = "rightU"
+			if event.key == pygame.K_UP:
+				keypressB = "upU"
+			if event.key == pygame.K_COMMA:
+				keypressB = "punchU"
+			if event.key == pygame.K_PERIOD:
+				keypressB = "kickU"
+			if event.key == pygame.K_DOWN:
+				keypressB = "downU"
+			if event.key == pygame.K_a:
+				keypressA = "leftU"
+			if event.key == pygame.K_d:
+				keypressA = "rightU"
+			if event.key == pygame.K_w:
+				keypressA = "upU"
+			if event.key == pygame.K_v:
+				keypressA = "punchU"
+			if event.key == pygame.K_b:
+				keypressA = "kickU"
+			if event.key == pygame.K_s:
+				keypressA = "downU"
+			
 	
 	player1.update(keypressA)
 	player2.update(keypressB)
