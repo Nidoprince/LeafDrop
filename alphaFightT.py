@@ -103,12 +103,12 @@ class LeafState(FightState):
 		
 	
 	def next(self, keypress):
-		if(keypress == "leftD"):self.holdingL=True
-		if(keypress == "leftU"):self.holdingL=False
-		if(keypress == "rightD"):self.holdingR=True
-		if(keypress == "rightU"):self.holdingR=False
-		if(keypress == "downD"):self.holdingD=True
-		if(keypress == "downU"):self.holdingD=False
+		if("leftD" in keypress):self.holdingL=True
+		if("leftU" in keypress):self.holdingL=False
+		if("rightD" in keypress):self.holdingR=True
+		if("rightU" in keypress):self.holdingR=False
+		if("downD" in keypress):self.holdingD=True
+		if("downU" in keypress):self.holdingD=False
 		if(self.state == "punch1"):
 			self.frame += 1
 			if(self.frame == 15):
@@ -156,7 +156,7 @@ class LeafState(FightState):
 		elif(self.state in["jumping","jPunch1","jKick1"]):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
-			if(keypress == "punchD"):
+			if("punchD" in keypress):
 				if(self.state == "crouch"):
 					self.state = "cPunch1"
 					self.currentImage = self.cAttack1Image[1]
@@ -165,12 +165,12 @@ class LeafState(FightState):
 					self.currentImage = self.attack1Image[1]
 				self.frame = 0
 				self.move = (0,0)
-			elif(keypress == "upD"):
+			elif("upD" in keypress):
 				self.state = "jumping"
 				self.frame = 0
 				self.move = (0,0)
-				self.jumpV = 11
-			elif(keypress == "kickD"):
+				self.jumpV = 16.5
+			elif("kickD" in keypress):
 				if(self.state == "crouch"):
 					self.state = "cKick1"
 					self.currentImage = self.cAttack2Image[0]
@@ -199,6 +199,7 @@ class LeafState(FightState):
 					self.state = "rightForw"
 			else:
 				self.state = "idle"
+				self.move = (0,0)
 			
 			if(self.state == "idle"):
 				self.frame = (self.frame + 1)%40
@@ -219,18 +220,18 @@ class LeafState(FightState):
 					self.frame -= 1
 				moveFrame = False
 				if(self.frame == -1):
-					self.frame = 10
+					self.frame = 5
 					moveFrame = True
-				elif(self.frame == 11):
+				elif(self.frame == 6):
 					self.frame = 0
 					moveFrame = True
-				if(self.frame in [0,1,2]):
+				if(self.frame in [0]):
 					self.currentImage = self.stepImage[0]
-				elif(self.frame in [4,3]):
+				elif(self.frame in [1]):
 					self.currentImage = self.stepImage[1]
-				elif(self.frame in [5,6,7]):
+				elif(self.frame in [2,3]):
 					self.currentImage = self.stepImage[2]
-				elif(self.frame in [8,9,10]):
+				elif(self.frame in [4,5]):
 					self.currentImage = self.stepImage[3]
 				if(moveFrame):
 					if(self.state in ["leftForw","rightBack"]):
@@ -274,17 +275,17 @@ class LeafState(FightState):
 					self.currentImage = self.jAttack2Image[0]
 				else:
 					self.currentImage = self.jAttack2Image[1]
-			self.jumpV -= 1
-			if(keypress == "punchD" and self.state == "jumping"):
+			self.jumpV -= 1.5
+			if("punchD" in keypress and self.state == "jumping"):
 				self.state = "jPunch1"
 				self.frame2 = 0
-			elif(keypress == "kickD" and self.state == "jumping"):
+			elif("kickD" in keypress and self.state == "jumping"):
 				self.state = "jKick1"
 				self.frame2 = 0
 			elif(self.holdingR and not self.holdingL):
-				self.orth = 2
+				self.orth = 3.5
 			elif(self.holdingL and not self.holdingR):
-				self.orth = -2
+				self.orth = -3.5
 			else:
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
@@ -307,7 +308,7 @@ walkSpeed = 14
 
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
-pygame.key.set_repeat(500, 20)
+#pygame.key.set_repeat(500, 20)
 forestStage = pygame.image.load("ForestStage.bmp").convert()
 stage = forestStage
 leaf = Fighter(LeafState(True),500,170)
@@ -317,60 +318,60 @@ player2 = clone
 
 while 1:
 	clock.tick(frameRate)
-	keypressA = None
-	keypressB = None
+	keypressA = []
+	keypressB = []
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: sys.exit()
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_LEFT:
-				keypressB = "leftD"
+				keypressB.append("leftD")
 			if event.key == pygame.K_RIGHT:
-				keypressB = "rightD"
+				keypressB.append("rightD")
 			if event.key == pygame.K_UP:
-				keypressB = "upD"
+				keypressB.append("upD")
 			if event.key == pygame.K_COMMA:
-				keypressB = "punchD"
+				keypressB.append("punchD")
 			if event.key == pygame.K_PERIOD:
-				keypressB = "kickD"
+				keypressB.append("kickD")
 			if event.key == pygame.K_DOWN:
-				keypressB = "downD"
+				keypressB.append("downD")
 			if event.key == pygame.K_a:
-				keypressA = "leftD"
+				keypressA.append("leftD")
 			if event.key == pygame.K_d:
-				keypressA = "rightD"
+				keypressA.append("rightD")
 			if event.key == pygame.K_w:
-				keypressA = "upD"
+				keypressA.append("upD")
 			if event.key == pygame.K_v:
-				keypressA = "punchD"
+				keypressA.append("punchD")
 			if event.key == pygame.K_b:
-				keypressA = "kickD"
+				keypressA.append("kickD")
 			if event.key == pygame.K_s:
-				keypressA = "downD"
+				keypressA.append("downD")
 		if event.type == pygame.KEYUP:
 			if event.key == pygame.K_LEFT:
-				keypressB = "leftU"
+				keypressB.append("leftU")
 			if event.key == pygame.K_RIGHT:
-				keypressB = "rightU"
+				keypressB.append("rightU")
 			if event.key == pygame.K_UP:
-				keypressB = "upU"
+				keypressB.append("upU")
 			if event.key == pygame.K_COMMA:
-				keypressB = "punchU"
+				keypressB.append("punchU")
 			if event.key == pygame.K_PERIOD:
-				keypressB = "kickU"
+				keypressB.append("kickU")
 			if event.key == pygame.K_DOWN:
-				keypressB = "downU"
+				keypressB.append("downU")
 			if event.key == pygame.K_a:
-				keypressA = "leftU"
+				keypressA.append("leftU")
 			if event.key == pygame.K_d:
-				keypressA = "rightU"
+				keypressA.append("rightU")
 			if event.key == pygame.K_w:
-				keypressA = "upU"
+				keypressA.append("upU")
 			if event.key == pygame.K_v:
-				keypressA = "punchU"
+				keypressA.append("punchU")
 			if event.key == pygame.K_b:
-				keypressA = "kickU"
+				keypressA.append("kickU")
 			if event.key == pygame.K_s:
-				keypressA = "downU"
+				keypressA.append("downU")
 			
 	
 	player1.update(keypressA)
