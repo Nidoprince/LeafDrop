@@ -144,7 +144,7 @@ class LeafState(FightState):
 		elif(self.state in["jumping","jPunch1","jKick1"]):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
-			if(keypress == pygame.K_COMMA):
+			if(keypress == "punchD"):
 				if(self.state == "crouch"):
 					self.state = "cPunch1"
 					self.currentImage = self.cAttack1Image[1]
@@ -153,12 +153,12 @@ class LeafState(FightState):
 					self.currentImage = self.attack1Image[1]
 				self.frame = 0
 				self.move = (0,0)
-			elif(keypress == pygame.K_UP):
+			elif(keypress == "upD"):
 				self.state = "jumping"
 				self.frame = 0
 				self.move = (0,0)
 				self.jumpV = 11
-			elif(keypress == pygame.K_PERIOD):
+			elif(keypress == "kickD"):
 				if(self.state == "crouch"):
 					self.state = "cKick1"
 					self.currentImage = self.cAttack2Image[0]
@@ -167,18 +167,18 @@ class LeafState(FightState):
 					self.currentImage = self.attack2Image[0]
 				self.frame = 0
 				self.move = (0,0)
-			elif(keypress == pygame.K_DOWN):
+			elif(keypress == "downD"):
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
 				self.move = (0,0)
-			elif(keypress == pygame.K_LEFT):
+			elif(keypress == "leftD"):
 				if(self.state == "idle"):
 					self.frame = 0
 				if(not self.facingLeft):
 					self.state = "rightBack"
 				else:
 					self.state = "leftForw"
-			elif(keypress == pygame.K_RIGHT):
+			elif(keypress == "rightD"):
 				if(self.state == "idle"):
 					self.frame = 0
 				if(self.facingLeft):
@@ -261,17 +261,17 @@ class LeafState(FightState):
 				else:
 					self.currentImage = self.jAttack2Image[1]
 			self.jumpV -= 1
-			if(keypress == pygame.K_COMMA and self.state == "jumping"):
+			if(keypress == "punchD" and self.state == "jumping"):
 				self.state = "jPunch1"
 				self.frame2 = 0
-			elif(keypress == pygame.K_PERIOD and self.state == "jumping"):
+			elif(keypress == "kickD" and self.state == "jumping"):
 				self.state = "jKick1"
 				self.frame2 = 0
-			elif(keypress == pygame.K_RIGHT):
+			elif(keypress == "rightD"):
 				self.orth = 2
-			elif(keypress == pygame.K_LEFT):
+			elif(keypress == "leftD"):
 				self.orth = -2
-			elif(keypress == pygame.K_DOWN):
+			elif(keypress == "downD"):
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
 			
@@ -297,31 +297,44 @@ pygame.key.set_repeat(500, 20)
 forestStage = pygame.image.load("ForestStage.bmp").convert()
 stage = forestStage
 leaf = Fighter(LeafState(True),500,170)
-clone = Fighter(FightState("LeafBreath/LeafBrthFrm1.bmp",RED,False),300,170)
+clone = Fighter(LeafState(False),300,170)
 player1 = leaf
 player2 = clone
 
 while 1:
 	clock.tick(frameRate)
-	keypress = None
+	keypressA = None
+	keypressB = None
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: sys.exit()
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_LEFT:
-				keypress = event.key
+				keypressB = "leftD"
 			if event.key == pygame.K_RIGHT:
-				keypress = event.key
+				keypressB = "rightD"
 			if event.key == pygame.K_UP:
-				keypress = event.key
+				keypressB = "upD"
 			if event.key == pygame.K_COMMA:
-				keypress = event.key
+				keypressB = "punchD"
 			if event.key == pygame.K_PERIOD:
-				keypress = event.key
+				keypressB = "kickD"
 			if event.key == pygame.K_DOWN:
-				keypress = event.key
+				keypressB = "downD"
+			if event.key == pygame.K_a:
+				keypressA = "leftD"
+			if event.key == pygame.K_d:
+				keypressA = "rightD"
+			if event.key == pygame.K_w:
+				keypressA = "upD"
+			if event.key == pygame.K_v:
+				keypressA = "punchD"
+			if event.key == pygame.K_b:
+				keypressA = "kickD"
+			if event.key == pygame.K_s:
+				keypressA = "downD"
 	
-	player1.update(keypress)
-	player2.update(keypress)
+	player1.update(keypressA)
+	player2.update(keypressB)
 	
 	if(player1.rect[0]<player2.rect[0]):
 		player1.state.setFacing(False)
