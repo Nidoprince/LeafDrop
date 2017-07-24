@@ -19,13 +19,38 @@ class Fighter(pygame.sprite.Sprite):
 		self.hitbox = self.state.getHit()
 		self.hurtbox = self.state.getHurt()
 		self.stopbox = self.state.getStopBox()
-		self.rect = self.rect.move(self.state.getMovement())
+		moveTest = self.canMove()
+		if(moveTest[0]):
+			self.rect = self.rect.move(self.state.getMovement())
+			if(self.state.getMovement()!=(0,0)):
+				self.state.stopped = False
+		else:
+			self.state.stopped = True
+			self.rect[0]=moveTest[1][0]
+			self.rect[1]=moveTest[1][1]
+		
+	def canMove(self):
+		testRec = self.rect.move(self.state.getMovement())
+		x = testRec[0]
+		y = testRec[1]
+		if(testRec[0]<-45):
+			x = -45
+		elif(testRec[0]>width-55):
+			x = width-55
+		if(testRec[1]>170):
+			y = 170
+		elif(testRec[1]<-40):
+			y = -40
+		if(x != testRec[0] or y != testRec[1]):
+			return (False,(x,y))
+		return (True,None)
 		
 class FightState():
 	def __init__(self,imageLoc,color,left):
 		self.currentImage = pygame.image.load(imageLoc).convert()
 		self.currentImage.set_colorkey(color)
 		self.facingLeft = left
+		self.stopped = False
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -110,14 +135,14 @@ class LeafState(FightState):
 			self.holdingL=False
 			if(self.state=="leftForw"):
 				self.adjust = (-(walkSpeed*self.frame/6),0)
-			elif(self.state=="rightBack"):
+			elif(self.state=="rightBack" and not self.stopped):
 				self.adjust = (walkSpeed*self.frame/6,0)
 		if("rightD" in keypress):self.holdingR=True
 		if("rightU" in keypress):
 			self.holdingR=False
 			if(self.state=="rightForw"):
 				self.adjust = (walkSpeed*self.frame/6,0)
-			elif(self.state=="leftBack"):
+			elif(self.state=="leftBack" and not self.stopped):
 				self.adjust = (-walkSpeed*self.frame/6,0)
 		if("downD" in keypress):self.holdingD=True
 		if("downU" in keypress):self.holdingD=False
