@@ -390,12 +390,16 @@ while 1:
 	player1.update(keypressA)
 	player2.update(keypressB)
 	
-	if(player1.rect[0]<player2.rect[0]):
+	if(player1.rect[0]<player2.rect[0]-10 and player1.state.facingLeft):
 		player1.state.setFacing(False)
+		player1.rect = player1.rect.move(5,0)
 		player2.state.setFacing(True)
-	else:
+		player2.rect = player2.rect.move(-5,0)
+	elif(player1.rect[0]-10>player2.rect[0] and player2.state.facingLeft):
 		player1.state.setFacing(True)
+		player1.rect = player1.rect.move(-5,0)
 		player2.state.setFacing(False)
+		player2.rect = player2.rect.move(5,0)
 		
 	screen.blit(stage, (0,0))
 	screen.blit(player1.image,player1.rect)
