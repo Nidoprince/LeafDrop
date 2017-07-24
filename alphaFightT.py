@@ -57,6 +57,7 @@ class LeafState(FightState):
 		self.holdingP = False
 		self.holdingK = False
 		self.move = (0,0)
+		self.adjust = (0,0)
 		self.idleImage = self.currentImage.copy()
 		self.attack1Image = [0,0,0,0,0]
 		self.attack2Image = [0,0]
@@ -103,10 +104,21 @@ class LeafState(FightState):
 		
 	
 	def next(self, keypress):
+		self.adjust = (0,0)
 		if("leftD" in keypress):self.holdingL=True
-		if("leftU" in keypress):self.holdingL=False
+		if("leftU" in keypress):
+			self.holdingL=False
+			if(self.state=="leftForw"):
+				self.adjust = (-(walkSpeed*self.frame/6),0)
+			elif(self.state=="rightBack"):
+				self.adjust = (walkSpeed*self.frame/6,0)
 		if("rightD" in keypress):self.holdingR=True
-		if("rightU" in keypress):self.holdingR=False
+		if("rightU" in keypress):
+			self.holdingR=False
+			if(self.state=="rightForw"):
+				self.adjust = (walkSpeed*self.frame/6,0)
+			elif(self.state=="leftBack"):
+				self.adjust = (-walkSpeed*self.frame/6,0)
 		if("downD" in keypress):self.holdingD=True
 		if("downU" in keypress):self.holdingD=False
 		if(self.state == "punch1"):
@@ -240,6 +252,7 @@ class LeafState(FightState):
 						self.move = (walkSpeed,0)
 				else:
 					self.move = (0,0)
+			self.move = (self.move[0] + self.adjust[0],self.move[1]+self.adjust[1])
 					
 	def nextJump(self, keypress):
 		self.frame += 1
