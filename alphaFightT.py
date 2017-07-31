@@ -12,7 +12,11 @@ class Fighter(pygame.sprite.Sprite):
 		self.hitbox = self.state.getHit()
 		self.hurtbox = self.state.getHurt()
 		self.stopbox = self.state.getStopBox()
-	
+		self.foe = None
+		
+	def setFoe(self, foe):
+		self.foe = foe
+		
 	def update(self, keypress):
 		self.state.next(keypress)
 		self.image = self.state.getImage()
@@ -28,8 +32,32 @@ class Fighter(pygame.sprite.Sprite):
 			self.state.stopped = True
 			self.rect[0]=moveTest[1][0]
 			self.rect[1]=moveTest[1][1]
+	
+	def getStopBox(self):
+		return pygame.Rect(self.rect[0]+self.stopbox[0],self.rect[1]+self.stopbox[1],self.stopbox[2],self.stopbox[3])
 		
+	def getHitBox(self):
+		return pygame.Rect(0,0,0,0)
+		
+	def getHurtBox(self):
+		return pygame.Rect(0,0,0,0)
+	
 	def canMove(self):
+		me = self.getStopBox().move(self.state.getMovement())
+		you = self.foe.getStopBox()
+		testRec = self.rect.move(self.state.getMovement())
+		x = testRec[0]
+		y = testRec[1]
+		if(me.colliderect(you)):
+			if(me.centerx>you.centerx):
+				x = you.right-self.stopbox.left
+			else:
+				x = you.left-me.width-self.stopbox.left
+			
+			return (False, (x,y))
+		else:
+			return self.canMoveWalls()
+	def canMoveWalls(self):
 		testRec = self.rect.move(self.state.getMovement())
 		x = testRec[0]
 		y = testRec[1]
@@ -51,6 +79,9 @@ class FightState():
 		self.currentImage.set_colorkey(color)
 		self.facingLeft = left
 		self.stopped = False
+		self.stopBox = None
+		self.hurtBoxes = []
+		self.hitBoxes = []
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -67,14 +98,54 @@ class FightState():
 	def getHurt(self):
 		return
 	def getStopBox(self):
-		return
+		if(self.facingLeft):
+			return self.stopBox
+		else:
+			return pygame.Rect(100-self.stopBox[0]-self.stopBox[2],self.stopBox[1],self.stopBox[2],self.stopBox[3])
 	def getMovement(self):
 		return (0,0)
+		
+	def strToRect(self, x):
+		textArray = x.split(" ")
+		numArray = map(int, textArray)
+		return pygame.Rect(numArray[0],numArray[1],numArray[2]-numArray[0],numArray[3]-numArray[1])
+		
+	def readBoxFile(self,filename):
+		f = open(filename, "r")
+		stpBox = f.readline()
+		stopBoxT = self.strToRect(stpBox)
+		twende = True
+		hurtBoxT = []
+		while(twende):
+			holder = f.readline()
+			if(holder == "###"):
+				twende = False
+			else:
+				hurtBoxT.append(self.strToRect(holder))
+		twende = True
+		hitBoxT = []
+		while(twende):
+			holder = f.readline()
+			if(holder == "###"):
+				twende = False
+			else:
+				hitBoxT.append(self.strToRect(holder))
+		f.close()
+		out = (stopBoxT,hurtBoxT,hitBoxT)
+		return output
+		
+	def setBoxes(self, boxes):
+		self.stopBox = boxes[0]
+		self.hurtBoxes = boxes[1]
+		self.hitBoxes = boxes[2]
+			
+		
 
 class LeafState(FightState):
 	def __init__(self,left):
 		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp",RED,left)
 		self.state = "idle"
+		self.stopBox = pygame.Rect(45,30,20,50)
 		self.holdingU = False
 		self.holdingD = False
 		self.holdingL = False
@@ -341,6 +412,7 @@ WHITE = (255, 255, 255)
 BLUE =  (  0,   0, 255)
 GREEN = (  0, 255,   0)
 RED =   (255,   0,   0)
+YELLOW =(255, 255,   0)
 
 walkSpeed = 14
 
@@ -353,6 +425,13 @@ leaf = Fighter(LeafState(True),500,170)
 clone = Fighter(LeafState(False),300,170)
 player1 = leaf
 player2 = clone
+
+player1.setFoe(player2)
+player2.setFoe(player1)
+
+showCollisionBox = False
+showHitBox = False
+showHurtBox = False
 
 while 1:
 	clock.tick(frameRate)
@@ -385,6 +464,12 @@ while 1:
 				keypressA.append("kickD")
 			if event.key == pygame.K_s:
 				keypressA.append("downD")
+			if event.key == pygame.K_i:
+				showCollisionBox = not showCollisionBox
+			if event.key == pygame.K_o:
+				showHitBox = not showHitBox
+			if event.key == pygame.K_p:
+				showHurtBox = not showHurtBox
 		if event.type == pygame.KEYUP:
 			if event.key == pygame.K_LEFT:
 				keypressB.append("leftU")
@@ -429,4 +514,13 @@ while 1:
 	screen.blit(stage, (0,0))
 	screen.blit(player1.image,player1.rect)
 	screen.blit(player2.image,player2.rect)
+	if(showCollisionBox):
+		pygame.draw.rect(screen, YELLOW, player1.getStopBox())
+		pygame.draw.rect(screen, YELLOW, player2.getStopBox())
+	if(showHitBox):
+		pygame.draw.rect(screen, GREEN, player1.getHitBox())
+		pygame.draw.rect(screen, GREEN, player2.getHitBox())
+	if(showHurtBox):
+		pygame.draw.rect(screen, RED, player1.getHurtBox())
+		pygame.draw.rect(screen, RED, player2.getHurtBox())
 	pygame.display.flip()
