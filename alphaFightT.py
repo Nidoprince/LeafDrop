@@ -517,8 +517,13 @@ while 1:
 	screen.blit(player1.image,player1.rect)
 	screen.blit(player2.image,player2.rect)
 	if(showCollisionBox):
-		pygame.draw.rect(screen, YELLOW, player1.getStopBox())
-		pygame.draw.rect(screen, YELLOW, player2.getStopBox())
+		s = pygame.Surface((600,400))
+		s.set_alpha(128)
+		s.fill(YELLOW)
+		screen.blit(s,player1.getStopBox(),player1.getStopBox())
+		screen.blit(s,player2.getStopBox(),player1.getStopBox())
+		#pygame.draw.rect(screen, YELLOW, player1.getStopBox())
+		#pygame.draw.rect(screen, YELLOW, player2.getStopBox())
 	if(showHitBox):
 		pygame.draw.rect(screen, GREEN, player1.getHitBox())
 		pygame.draw.rect(screen, GREEN, player2.getHitBox())
