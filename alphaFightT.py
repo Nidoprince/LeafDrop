@@ -48,11 +48,13 @@ class Fighter(pygame.sprite.Sprite):
 		testRec = self.rect.move(self.state.getMovement())
 		x = testRec[0]
 		y = testRec[1]
+		if(self.state.getMovement()==(0,0)):
+			me = pygame.Rect(me[0]-2,me[1],me[2]+4,me[3])
 		if(me.colliderect(you)):
 			if(me.centerx>you.centerx):
-				x = you.right-self.stopbox.left
+				x = you.right-(me.left-x)
 			else:
-				x = you.left-me.width-self.stopbox.left
+				x = you.left-me.width-(me.left-x)
 			
 			return (False, (x,y))
 		else:
