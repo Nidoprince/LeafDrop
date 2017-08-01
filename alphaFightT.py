@@ -76,14 +76,16 @@ class Fighter(pygame.sprite.Sprite):
 		return (True,None)
 		
 class FightState():
-	def __init__(self,imageLoc,color,left):
-		self.currentImage = pygame.image.load(imageLoc).convert()
+	def __init__(self,fileLoc,color,left):
+		self.currentImage = pygame.image.load(fileLoc+".bmp").convert()
 		self.currentImage.set_colorkey(color)
+		self.setBoxes(self.readBoxFile(fileLoc+".txt"))
 		self.facingLeft = left
 		self.stopped = False
-		self.stopBox = None
-		self.hurtBoxes = []
-		self.hitBoxes = []
+		self.move = (0,0)
+		#self.stopBox = None
+		#self.hurtBoxes = []
+		#self.hitBoxes = []
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -105,21 +107,21 @@ class FightState():
 		else:
 			return pygame.Rect(100-self.stopBox[0]-self.stopBox[2],self.stopBox[1],self.stopBox[2],self.stopBox[3])
 	def getMovement(self):
-		return (0,0)
+		return self.move
 		
 	def strToRect(self, x):
 		textArray = x.split(" ")
-		numArray = map(int, textArray)
+		numArray = [int(a) for a in textArray]
 		return pygame.Rect(numArray[0],numArray[1],numArray[2]-numArray[0],numArray[3]-numArray[1])
 		
 	def readBoxFile(self,filename):
 		f = open(filename, "r")
-		stpBox = f.readline()
+		stpBox = f.readline().strip()
 		stopBoxT = self.strToRect(stpBox)
 		twende = True
 		hurtBoxT = []
 		while(twende):
-			holder = f.readline()
+			holder = f.readline().strip()
 			if(holder == "###"):
 				twende = False
 			else:
@@ -127,27 +129,28 @@ class FightState():
 		twende = True
 		hitBoxT = []
 		while(twende):
-			holder = f.readline()
+			holder = f.readline().strip()
 			if(holder == "###"):
 				twende = False
 			else:
 				hitBoxT.append(self.strToRect(holder))
 		f.close()
-		out = (stopBoxT,hurtBoxT,hitBoxT)
-		return output
+		return (stopBoxT,hurtBoxT,hitBoxT)
 		
 	def setBoxes(self, boxes):
 		self.stopBox = boxes[0]
 		self.hurtBoxes = boxes[1]
 		self.hitBoxes = boxes[2]
+		
+	def getBoxes(self):
+		return (self.stopBox, self.hurtBoxes, self.hitBoxes)
 			
 		
 
 class LeafState(FightState):
 	def __init__(self,left):
-		FightState.__init__(self,"LeafBreath/LeafBrthFrm1.bmp",RED,left)
+		FightState.__init__(self,"LeafBreath/LeafBrthFrm1",RED,left)
 		self.state = "idle"
-		self.stopBox = pygame.Rect(45,30,20,50)
 		self.holdingU = False
 		self.holdingD = False
 		self.holdingL = False
@@ -157,6 +160,7 @@ class LeafState(FightState):
 		self.move = (0,0)
 		self.adjust = (0,0)
 		self.idleImage = self.currentImage.copy()
+		self.idleBoxes = self.getBoxes()
 		self.attack1Image = [0,0,0,0,0]
 		self.attack2Image = [0,0]
 		self.cAttack1Image = [0,0,0,0,0]
@@ -166,39 +170,58 @@ class LeafState(FightState):
 		self.jumpImage = [0,0]
 		self.jAttack1Image = [0,0,0,0]
 		self.jAttack2Image = [0,0]
+		self.attack1Boxes = [0,0,0,0,0]
+		self.attack2Boxes = [0,0]
+		self.cAttack1Boxes = [0,0,0,0,0]
+		self.cAttack2Boxes = [0,0]
+		self.stepBoxes = [0,0,0,0]
+		self.breathBoxes = [0,0,0]
+		self.jumpBoxes = [0,0]
+		self.jAttack1Boxes = [0,0,0,0]
+		self.jAttack2Boxes = [0,0]
 		self.frame = 0
 		self.frame2 = 0
 		self.jumpV = 0
 		self.orth = 0
 		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
 		self.crouchImage.set_colorkey(RED)
+		self.crouchBoxes = self.readBoxFile("LeafCrouch.txt")
 		for i in range(0,5):
 			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i+1)+".bmp").convert()
 			self.attack1Image[i].set_colorkey(RED)
+			self.attack1Boxes[i] = self.readBoxFile("LeafAttack1/LeafAtk1Frm"+str(i+1)+".txt")
 		for i in range(0,2):
 			self.attack2Image[i] = pygame.image.load("LeafAttack2/LeafAtk2Frm"+str(i+1)+".bmp").convert()
 			self.attack2Image[i].set_colorkey(RED)
+			self.attack2Boxes[i] = self.readBoxFile("LeafAttack2/LeafAtk2Frm"+str(i+1)+".txt")
 		for i in range(0,5):
 			self.cAttack1Image[i] = pygame.image.load("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".bmp").convert()
 			self.cAttack1Image[i].set_colorkey(RED)
+			self.cAttack1Boxes[i] = self.readBoxFile("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".txt")
 		for i in range(0,2):
 			self.cAttack2Image[i] = pygame.image.load("LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".bmp").convert()
 			self.cAttack2Image[i].set_colorkey(RED)
+			self.cAttack2Boxes[i] = self.readBoxFile("LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".txt")
 		for i in range(0,4):
 			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
 			self.stepImage[i].set_colorkey(RED)
+			self.stepBoxes[i] = self.readBoxFile("LeafStep/LeafStpFrm"+str(i+1)+".txt")
 		for i in range(0,3):
 			self.breathImage[i] = pygame.image.load("LeafBreath/LeafBrthFrm"+str(i+1)+".bmp").convert()
 			self.breathImage[i].set_colorkey(RED)
+			self.breathBoxes[i] = self.readBoxFile("LeafBreath/LeafBrthFrm"+str(i+1)+".txt")
 		for i in range(0,2):
 			self.jumpImage[i] = pygame.image.load("LeafJump/LeafJmpFrm"+str(i+1)+".bmp").convert()
 			self.jumpImage[i].set_colorkey(RED)
+			self.jumpBoxes[i] = self.readBoxFile("LeafJump/LeafJmpFrm"+str(i+1)+".txt")
 		for i in range(0,4):
 			self.jAttack1Image[i] = pygame.image.load("LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".bmp").convert()
 			self.jAttack1Image[i].set_colorkey(RED)
+			self.jAttack1Boxes[i] = self.readBoxFile("LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".txt")
 		for i in range(0,2):
 			self.jAttack2Image[i] = pygame.image.load("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".bmp").convert()
 			self.jAttack2Image[i].set_colorkey(RED)
+			self.jAttack2Boxes[i] = self.readBoxFile("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".txt")
 		
 	
 	def next(self, keypress):
@@ -225,44 +248,58 @@ class LeafState(FightState):
 				self.state = "idle"
 				self.frame = 0
 				self.currentImage = self.idleImage
+				self.setBoxes(self.idleBoxes)
 			elif(self.frame == 6):
 				self.currentImage = self.attack1Image[4]
+				self.setBoxes(self.attack1Boxes[4])
 			elif(self.frame == 5):
 				self.currentImage = self.attack1Image[3]
+				self.setBoxes(self.attack1Boxes[3])
 			elif(self.frame == 4):
 				self.currentImage = self.attack1Image[2]
+				self.setBoxes(self.attack1Boxes[2])
 			elif(self.frame == 2):
 				self.currentImage = self.attack1Image[1]
+				self.setBoxes(self.attack1Boxes[1])
 		elif(self.state == "kick1"):
 			self.frame += 1
 			if(self.frame == 15):
 				self.state = "idle"
 				self.frame = 0
 				self.currentImage = self.idleImage
+				self.setBoxes(self.idleBoxes)
 			elif(self.frame == 3):
 				self.currentImage = self.attack2Image[1]
+				self.setBoxes(self.attack2Boxes[1])
 		elif(self.state == "cPunch1"):
 			self.frame += 1
 			if(self.frame == 10):
 				self.state = "crouch"
 				self.frame = 0
 				self.currentImage = self.crouchImage
+				self.setBoxes(self.crouchBoxes)
 			elif(self.frame == 5):
 				self.currentImage = self.cAttack1Image[4]
+				self.setBoxes(self.cAttack1Boxes[4])
 			elif(self.frame == 4):
 				self.currentImage = self.cAttack1Image[3]
+				self.setBoxes(self.cAttack1Boxes[3])
 			elif(self.frame == 3):
 				self.currentImage = self.cAttack1Image[2]
+				self.setBoxes(self.cAttack1Boxes[2])
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack1Image[1]
+				self.setBoxes(self.cAttack1Boxes[1])
 		elif(self.state == "cKick1"):
 			self.frame += 1
 			if(self.frame == 15):
 				self.state = "crouch"
 				self.frame = 0
 				self.currentImage = self.crouchImage
+				self.setBoxes(self.crouchBoxes)
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack2Image[1]
+				self.setBoxes(self.cAttack2Boxes[1])
 		elif(self.state in["jumping","jPunch1","jKick1"]):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
@@ -270,9 +307,11 @@ class LeafState(FightState):
 				if(self.state == "crouch"):
 					self.state = "cPunch1"
 					self.currentImage = self.cAttack1Image[1]
+					self.setBoxes(self.cAttack1Boxes[1])
 				else:
 					self.state = "punch1"
 					self.currentImage = self.attack1Image[1]
+					self.setBoxes(self.attack1Boxes[1])
 				self.frame = 0
 				self.move = (0,0)
 			elif("upD" in keypress):
@@ -284,14 +323,17 @@ class LeafState(FightState):
 				if(self.state == "crouch"):
 					self.state = "cKick1"
 					self.currentImage = self.cAttack2Image[0]
+					self.setBoxes(self.cAttack2Boxes[0])
 				else:
 					self.state = "kick1"
 					self.currentImage = self.attack2Image[0]
+					self.setBoxes(self.attack2Boxes[0])
 				self.frame = 0
 				self.move = (0,0)
 			elif(self.holdingD):
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
+				self.setBoxes(self.crouchBoxes)
 				self.move = (0,0)
 			elif(self.holdingL and not self.holdingR):
 				if(self.state == "idle"):
@@ -315,10 +357,13 @@ class LeafState(FightState):
 				self.frame = (self.frame + 1)%40
 				if(self.frame in [25,26,27,37,38,39]):
 					self.currentImage = self.breathImage[1]
+					self.setBoxes(self.breathBoxes[1])
 				elif(self.frame in range(28,37)):
 					self.currentImage = self.breathImage[2]
+					self.setBoxes(self.breathBoxes[2])
 				else:
 					self.currentImage = self.breathImage[0]
+					self.setBoxes(self.breathBoxes[0])
 			elif(self.state == "crouch"):
 				self.frame = 0
 			elif(self.state in ["punch1","kick1","cPunch1","cKick1"]):
@@ -337,12 +382,16 @@ class LeafState(FightState):
 					moveFrame = True
 				if(self.frame in [0]):
 					self.currentImage = self.stepImage[0]
+					self.setBoxes(self.stepBoxes[0])
 				elif(self.frame in [1]):
 					self.currentImage = self.stepImage[1]
+					self.setBoxes(self.stepBoxes[1])
 				elif(self.frame in [2,3]):
 					self.currentImage = self.stepImage[2]
+					self.setBoxes(self.stepBoxes[2])
 				elif(self.frame in [4,5]):
 					self.currentImage = self.stepImage[3]
+					self.setBoxes(self.stepBoxes[3])
 				if(moveFrame):
 					if(self.state in ["leftForw","rightBack"]):
 						self.move = (-1*walkSpeed,0)
@@ -359,6 +408,7 @@ class LeafState(FightState):
 			self.frame = 0
 		elif(self.frame<5 or self.frame>=26):
 			self.currentImage = self.jumpImage[0]
+			self.setBoxes(self.jumpBoxes[0])
 			self.move = (0,0)
 			self.orth = 0
 			self.state = "jumping"
@@ -366,26 +416,33 @@ class LeafState(FightState):
 		else:
 			if(self.state == "jumping"):
 				self.currentImage = self.jumpImage[1]
+				self.setBoxes(self.jumpBoxes[1])
 			elif(self.state == "jPunch1"):
 				self.frame2+=1
 				if(self.frame2 == 10):
 					self.state = "jumping"
 				elif(self.frame2 == 6):
 					self.currentImage = self.jAttack1Image[3]
+					self.setBoxes(self.jAttack1Boxes[3])
 				elif(self.frame2 == 5):
 					self.currentImage = self.jAttack1Image[2]
+					self.setBoxes(self.jAttack1Boxes[2])
 				elif(self.frame2 == 3):
 					self.currentImage = self.jAttack1Image[1]
+					self.setBoxes(self.jAttack1Boxes[1])
 				elif(self.frame2 == 1):
 					self.currentImage = self.jAttack1Image[0]
+					self.setBoxes(self.jAttack1Boxes[0])
 			elif(self.state == "jKick1"):
 				self.frame2+=1
 				if(self.frame2==20):
 					self.state = "jumping"
 				elif(self.frame == 1):
 					self.currentImage = self.jAttack2Image[0]
+					self.setBoxes(self.jAttack2Boxes[0])
 				else:
 					self.currentImage = self.jAttack2Image[1]
+					self.setBoxes(self.jAttack2Boxes[1])
 			self.jumpV -= 1.5
 			if("punchD" in keypress and self.state == "jumping"):
 				self.state = "jPunch1"
@@ -401,10 +458,6 @@ class LeafState(FightState):
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
 			
-			
-				
-	def getMovement(self):
-		return self.move
 		
 		
 
@@ -521,9 +574,7 @@ while 1:
 		s.set_alpha(128)
 		s.fill(YELLOW)
 		screen.blit(s,player1.getStopBox(),player1.getStopBox())
-		screen.blit(s,player2.getStopBox(),player1.getStopBox())
-		#pygame.draw.rect(screen, YELLOW, player1.getStopBox())
-		#pygame.draw.rect(screen, YELLOW, player2.getStopBox())
+		screen.blit(s,player2.getStopBox(),player2.getStopBox())
 	if(showHitBox):
 		pygame.draw.rect(screen, GREEN, player1.getHitBox())
 		pygame.draw.rect(screen, GREEN, player2.getHitBox())
