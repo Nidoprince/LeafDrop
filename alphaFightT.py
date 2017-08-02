@@ -1,6 +1,6 @@
 import pygame
 
-frameRate = 30
+frameRate = 50
 
 class Fighter(pygame.sprite.Sprite):
 	def __init__(self, fightState, x, y):
@@ -9,8 +9,6 @@ class Fighter(pygame.sprite.Sprite):
 		self.image = self.state.getImage()
 		self.rect = self.image.get_rect()
 		self.rect = self.rect.move(x,y)
-		self.hitbox = self.state.getHit()
-		self.hurtbox = self.state.getHurt()
 		self.stopbox = self.state.getStopBox()
 		self.foe = None
 		
@@ -20,8 +18,6 @@ class Fighter(pygame.sprite.Sprite):
 	def update(self, keypress):
 		self.state.next(keypress)
 		self.image = self.state.getImage()
-		self.hitbox = self.state.getHit()
-		self.hurtbox = self.state.getHurt()
 		self.stopbox = self.state.getStopBox()
 		moveTest = self.canMove()
 		if(moveTest[0]):
@@ -36,11 +32,11 @@ class Fighter(pygame.sprite.Sprite):
 	def getStopBox(self):
 		return pygame.Rect(self.rect[0]+self.stopbox[0],self.rect[1]+self.stopbox[1],self.stopbox[2],self.stopbox[3])
 		
-	def getHitBox(self):
-		return pygame.Rect(0,0,0,0)
+	def getHitBoxes(self):
+		return [pygame.Rect(self.rect[0]+a[0],self.rect[1]+a[1],a[2],a[3]) for a in self.state.getHitBoxes()]
 		
-	def getHurtBox(self):
-		return pygame.Rect(0,0,0,0)
+	def getHurtBoxes(self):
+		return [pygame.Rect(self.rect[0]+a[0],self.rect[1]+a[1],a[2],a[3]) for a in self.state.getHurtBoxes()]
 	
 	def canMove(self):
 		me = self.getStopBox().move(self.state.getMovement())
@@ -83,9 +79,6 @@ class FightState():
 		self.facingLeft = left
 		self.stopped = False
 		self.move = (0,0)
-		#self.stopBox = None
-		#self.hurtBoxes = []
-		#self.hitBoxes = []
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -97,15 +90,25 @@ class FightState():
 		self.facingLeft = isLeft
 	def next(self, keypress):
 		return
-	def getHit(self):
-		return
-	def getHurt(self):
-		return
+		
+	def getHitBoxes(self):
+		if(self.facingLeft):
+			return self.hitBoxes
+		else:
+			return [pygame.Rect(100-a[0]-a[2],a[1],a[2],a[3]) for a in self.hitBoxes]
+			
+	def getHurtBoxes(self):
+		if(self.facingLeft):
+			return self.hurtBoxes
+		else:
+			return [pygame.Rect(100-a[0]-a[2],a[1],a[2],a[3]) for a in self.hurtBoxes]
+		
 	def getStopBox(self):
 		if(self.facingLeft):
 			return self.stopBox
 		else:
 			return pygame.Rect(100-self.stopBox[0]-self.stopBox[2],self.stopBox[1],self.stopBox[2],self.stopBox[3])
+
 	def getMovement(self):
 		return self.move
 		
@@ -473,7 +476,6 @@ walkSpeed = 14
 
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
-#pygame.key.set_repeat(500, 20)
 forestStage = pygame.image.load("ForestStage.bmp").convert()
 stage = forestStage
 leaf = Fighter(LeafState(True),500,170)
@@ -576,9 +578,19 @@ while 1:
 		screen.blit(s,player1.getStopBox(),player1.getStopBox())
 		screen.blit(s,player2.getStopBox(),player2.getStopBox())
 	if(showHitBox):
-		pygame.draw.rect(screen, GREEN, player1.getHitBox())
-		pygame.draw.rect(screen, GREEN, player2.getHitBox())
+		s = pygame.Surface((600,400))
+		s.set_alpha(128)
+		s.fill(GREEN)
+		for a in player1.getHitBoxes():
+			screen.blit(s,a,a)
+		for a in player2.getHitBoxes():
+			screen.blit(s,a,a)
 	if(showHurtBox):
-		pygame.draw.rect(screen, RED, player1.getHurtBox())
-		pygame.draw.rect(screen, RED, player2.getHurtBox())
+		s = pygame.Surface((600,400))
+		s.set_alpha(128)
+		s.fill(RED)
+		for a in player1.getHurtBoxes():
+			screen.blit(s,a,a)
+		for a in player2.getHurtBoxes():
+			screen.blit(s,a,a)
 	pygame.display.flip()
