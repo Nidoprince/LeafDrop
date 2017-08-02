@@ -1,6 +1,6 @@
 import pygame
 
-frameRate = 50
+frameRate = 30
 
 class Fighter(pygame.sprite.Sprite):
 	def __init__(self, fightState, x, y):
