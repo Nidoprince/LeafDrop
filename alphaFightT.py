@@ -1,7 +1,10 @@
-import pygame
+import pygame, sys
 
 frameRate = 30
 
+
+#Basic class of the combatants in the game.  Contains functions dealing with a given character's interaction with 
+#the opposing fighter, and the stage around them.
 class Fighter(pygame.sprite.Sprite):
 	def __init__(self, fightState, x, y):
 		pygame.sprite.Sprite.__init__(self)
@@ -12,9 +15,12 @@ class Fighter(pygame.sprite.Sprite):
 		self.stopbox = self.state.getStopBox()
 		self.foe = None
 		
+	#Sets who the opponent is so they can call each others methods and look at each others hit boxes	
 	def setFoe(self, foe):
 		self.foe = foe
-		
+	
+	#Called every frame to update whats happening.  Calls the State update method which does most of the heavy lifting.
+	#Deals with movement and collision detection and stuff.
 	def update(self, keypress):
 		self.state.next(keypress)
 		self.image = self.state.getImage()
@@ -39,12 +45,15 @@ class Fighter(pygame.sprite.Sprite):
 	def getHurtBoxes(self):
 		return [pygame.Rect(self.rect[0]+a[0],self.rect[1]+a[1],a[2],a[3]) for a in self.state.getHurtBoxes()]
 	
+	#Checks to see if any of its hurt boxes intersect with the enemies hit boxes
+	#If so, it calls setHit on the enemy, making them react to the damage.
 	def checkHit(self):
 		enemy = self.foe.getHitBoxes()
 		for x in self.getHurtBoxes():
 			if(x.collidelist(enemy)!=-1):
 				self.foe.state.setHit(20,0)
 	
+	#Checks to see if movement is possible or if you are walking into a wall or enemy.
 	def canMove(self):
 		me = self.getStopBox().move(self.state.getMovement())
 		you = self.foe.getStopBox()
@@ -62,6 +71,8 @@ class Fighter(pygame.sprite.Sprite):
 			return (False, (x,y))
 		else:
 			return self.canMoveWalls()
+	
+	#subfunction of above, this part deals with walls in particular
 	def canMoveWalls(self):
 		testRec = self.rect.move(self.state.getMovement())
 		x = testRec[0]
@@ -77,17 +88,20 @@ class Fighter(pygame.sprite.Sprite):
 		if(x != testRec[0] or y != testRec[1]):
 			return (False,(x,y))
 		return (True,None)
-		
+
+#Super class for the internal state of a fighter.  This deals with sprites, attack animations, hit boxes,
+#and all the internals of the fighter that are not explicitly connected to the other character or the map.		
 class FightState():
 	def __init__(self,fileLoc,color,left):
+		#Loads intial image and box data for character from file
 		self.currentImage = pygame.image.load(fileLoc+".bmp").convert()
 		self.currentImage.set_colorkey(color)
 		self.setBoxes(self.readBoxFile(fileLoc+".txt"))
-		self.facingLeft = left
-		self.stopped = False
-		self.move = (0,0)
-		self.punchTimer = 0
-		self.state = "idle"
+		self.facingLeft = left #Determines which direction character is facing
+		self.stopped = False #Flag used when stopped by walls or other characters to prevent some jittering motions
+		self.move = (0,0) #Movement distance sent to the Fighter class each frame.
+		self.punchTimer = 0 #Determines how long stunned by an attack
+		self.state = "idle" #Tells what the character is in the process of doing.  The most important variable in the class.
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -97,6 +111,7 @@ class FightState():
 	
 	def setFacing(self,isLeft):
 		self.facingLeft = isLeft
+		
 	def next(self, keypress):
 		return
 		
@@ -120,12 +135,16 @@ class FightState():
 
 	def getMovement(self):
 		return self.move
-		
+	
+	#Really shouldnt be in here, but this turns a string of the coordinates of the diagonal corners of a rectangle
+	#into a Rect object
 	def strToRect(self, x):
 		textArray = x.split(" ")
 		numArray = [int(a) for a in textArray]
 		return pygame.Rect(numArray[0],numArray[1],numArray[2]-numArray[0],numArray[3]-numArray[1])
 		
+	#Reads a text file associated with each frame of animation that contains the stop, hit, and hurt boxes for that
+	#frame
 	def readBoxFile(self,filename):
 		f = open(filename, "r")
 		stpBox = f.readline().strip()
@@ -156,30 +175,38 @@ class FightState():
 		
 	def getBoxes(self):
 		return (self.stopBox, self.hurtBoxes, self.hitBoxes)
-		
+	
+	#called when hit by enemies attack.  Sets length of time you are in the "hit" state
 	def setHit(self, punchTime, damage):
 		self.state = "hit"
 		self.frame = 0
 		self.punchTimer = punchTime
 			
 		
-
+#The subClass of the FightState specifically for the character Leaf.  This controls his animations, his frames,
+#how he reacts to user input, everything.
 class LeafState(FightState):
+	#Sets all the variables.  Probably pretty bloated.  
 	def __init__(self,left):
 		FightState.__init__(self,"LeafBreath/LeafBrthFrm1",RED,left)
-		self.state = "idle"
+		
+		#Used to tell if a particular keyboard key is currently held down or not.
 		self.holdingU = False
 		self.holdingD = False
 		self.holdingL = False
 		self.holdingR = False
 		self.holdingP = False
 		self.holdingK = False
-		self.move = (0,0)
-		self.adjust = (0,0)
-		self.idleImage = self.currentImage.copy()
-		self.idleBoxes = self.getBoxes()
+		
+		self.adjust = (0,0) #If movement is interupted during a walk cycle, this adjusts the character an appropriate fractional distance of a step.
+		self.frame = 0 #Keeps track of how far into each task one is.
+		self.frame2 = 0 #Keeps track of how far into a second task one is if two are happening concurrently.  
+		self.jumpV = 0 #The vertical velocity of a jump
+		self.orth = 0 #How far a character is moving left or right while jumping
+		self.walkSpeed = 14 #Determines how many pixels each step covers
+		
+		#Initializes all the lists for different animations' images
 		self.hitImage = [0,0]
-		self.hitBox = [0,0]
 		self.attack1Image = [0,0,0,0,0]
 		self.attack2Image = [0,0]
 		self.cAttack1Image = [0,0,0,0,0]
@@ -189,6 +216,8 @@ class LeafState(FightState):
 		self.jumpImage = [0,0]
 		self.jAttack1Image = [0,0,0,0]
 		self.jAttack2Image = [0,0]
+		#Initializes all the lists for differnet animations' boxes
+		self.hitBox = [0,0] #Uses a slightly different naming format than all the rest because of the previously existing "hitBoxes" variable.
 		self.attack1Boxes = [0,0,0,0,0]
 		self.attack2Boxes = [0,0]
 		self.cAttack1Boxes = [0,0,0,0,0]
@@ -198,10 +227,10 @@ class LeafState(FightState):
 		self.jumpBoxes = [0,0]
 		self.jAttack1Boxes = [0,0,0,0]
 		self.jAttack2Boxes = [0,0]
-		self.frame = 0
-		self.frame2 = 0
-		self.jumpV = 0
-		self.orth = 0
+		
+		#Sets all the single frame animation variables for sprites and hitboxes
+		self.idleImage = self.currentImage.copy() 
+		self.idleBoxes = self.getBoxes()
 		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
 		self.crouchImage.set_colorkey(RED)
 		self.crouchBoxes = self.readBoxFile("LeafCrouch.txt")
@@ -209,6 +238,7 @@ class LeafState(FightState):
 		self.crouchHitImage.set_colorkey(RED)
 		self.crouchHitBoxes = self.readBoxFile("LeafCrouchHit.txt")
 		
+		#And here is all the multiframe animation data setting
 		for i in range(0,2):
 			self.hitImage[i] = pygame.image.load("LeafHit/LeafHitFrm"+str(i+1)+".bmp").convert()
 			self.hitImage[i].set_colorkey(RED)
@@ -250,26 +280,31 @@ class LeafState(FightState):
 			self.jAttack2Image[i].set_colorkey(RED)
 			self.jAttack2Boxes[i] = self.readBoxFile("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".txt")
 		
-	
+	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
+	
+		#Deals with keyboard input that cares about being held down as opposed to just pressed.  
+		#Also deals with adjustment nessessary if step animations interupted, because it normally only
+		#adjusts the location after each full step cycle.  
 		self.adjust = (0,0)
 		if("leftD" in keypress):self.holdingL=True
 		if("leftU" in keypress):
 			self.holdingL=False
 			if(self.state=="leftForw"):
-				self.adjust = (-(walkSpeed*self.frame/6),0)
+				self.adjust = (-(self.walkSpeed*self.frame/6),0)
 			elif(self.state=="rightBack" and not self.stopped):
-				self.adjust = (walkSpeed*self.frame/6,0)
+				self.adjust = (self.walkSpeed*self.frame/6,0)
 		if("rightD" in keypress):self.holdingR=True
 		if("rightU" in keypress):
 			self.holdingR=False
 			if(self.state=="rightForw"):
-				self.adjust = (walkSpeed*self.frame/6,0)
+				self.adjust = (self.walkSpeed*self.frame/6,0)
 			elif(self.state=="leftBack" and not self.stopped):
-				self.adjust = (-walkSpeed*self.frame/6,0)
+				self.adjust = (-self.walkSpeed*self.frame/6,0)
 		if("downD" in keypress):self.holdingD=True
 		if("downU" in keypress):self.holdingD=False
-		if(self.state == "hit"):
+		
+		if(self.state == "hit"): #Animation when struck
 			self.frame += 1
 			if(self.frame == self.punchTimer):
 				self.state = "idle"
@@ -282,7 +317,7 @@ class LeafState(FightState):
 			else:
 				self.currentImage = self.hitImage[1]
 				self.setBoxes(self.hitBox[1])
-		elif(self.state == "crouchHit"):
+		elif(self.state == "crouchHit"): #Animation when struck while crouching
 			self.frame += 1
 			if(self.frame == self.punchTimer):
 				self.state = "crouch"
@@ -292,7 +327,7 @@ class LeafState(FightState):
 			else:
 				self.currentImage = self.crouchHitImage
 				self.setBoxes(self.crouchHitBoxes)
-		elif(self.state == "punch1"):
+		elif(self.state == "punch1"): #Animation when performing basic sword attack while standing
 			self.frame += 1
 			if(self.frame == 15):
 				self.state = "idle"
@@ -311,7 +346,7 @@ class LeafState(FightState):
 			elif(self.frame == 2):
 				self.currentImage = self.attack1Image[1]
 				self.setBoxes(self.attack1Boxes[1])
-		elif(self.state == "kick1"):
+		elif(self.state == "kick1"):  #Animation for basic kick while standing
 			self.frame += 1
 			if(self.frame == 15):
 				self.state = "idle"
@@ -321,7 +356,7 @@ class LeafState(FightState):
 			elif(self.frame == 3):
 				self.currentImage = self.attack2Image[1]
 				self.setBoxes(self.attack2Boxes[1])
-		elif(self.state == "cPunch1"):
+		elif(self.state == "cPunch1"):  #Animation for basic sword strike while crouching
 			self.frame += 1
 			if(self.frame == 10):
 				self.state = "crouch"
@@ -340,7 +375,7 @@ class LeafState(FightState):
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack1Image[1]
 				self.setBoxes(self.cAttack1Boxes[1])
-		elif(self.state == "cKick1"):
+		elif(self.state == "cKick1"): #Animation for basic kick while crouching
 			self.frame += 1
 			if(self.frame == 15):
 				self.state = "crouch"
@@ -350,60 +385,60 @@ class LeafState(FightState):
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack2Image[1]
 				self.setBoxes(self.cAttack2Boxes[1])
-		elif(self.state in["jumping","jPunch1","jKick1","jumpHit"]):
+		elif(self.state in["jumping","jPunch1","jKick1","jumpHit"]): #Jumps to special jumping function.  Haha
 			self.nextJump(keypress)
-		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]):
-			if("punchD" in keypress):
-				if(self.state == "crouch"):
+		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]): #Logic for passive states that you can initiate attacks from.
+			if("punchD" in keypress): #Starts basic sword swing.
+				if(self.state == "crouch"): #When crouched
 					self.state = "cPunch1"
 					self.currentImage = self.cAttack1Image[1]
 					self.setBoxes(self.cAttack1Boxes[1])
-				else:
+				else: #When standing
 					self.state = "punch1"
 					self.currentImage = self.attack1Image[1]
 					self.setBoxes(self.attack1Boxes[1])
 				self.frame = 0
 				self.move = (0,0)
-			elif("upD" in keypress):
+			elif("upD" in keypress): #Starts jumping
 				self.state = "jumping"
 				self.frame = 0
 				self.move = (0,0)
-				self.jumpV = 16.5
-			elif("kickD" in keypress):
-				if(self.state == "crouch"):
+				self.jumpV = 16.5 #This tells us how fast we are jumping upward.  Currently very specific number needed or you won't land on the ground, but will instead fly.
+			elif("kickD" in keypress): 
+				if(self.state == "crouch"): #Start kicking while crouched
 					self.state = "cKick1"
 					self.currentImage = self.cAttack2Image[0]
 					self.setBoxes(self.cAttack2Boxes[0])
-				else:
+				else: #Start kicking while standing
 					self.state = "kick1"
 					self.currentImage = self.attack2Image[0]
 					self.setBoxes(self.attack2Boxes[0])
 				self.frame = 0
 				self.move = (0,0)
-			elif(self.holdingD):
+			elif(self.holdingD): #Start or continue crouching
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
 				self.move = (0,0)
-			elif(self.holdingL and not self.holdingR):
+			elif(self.holdingL and not self.holdingR): #Start or continue walking left
 				if(self.state == "idle"):
 					self.frame = 0
 				if(not self.facingLeft):
 					self.state = "rightBack"
 				else:
 					self.state = "leftForw"
-			elif(self.holdingR and not self.holdingL):
+			elif(self.holdingR and not self.holdingL): #Start or continue walking right
 				if(self.state == "idle"):
 					self.frame = 0
 				if(self.facingLeft):
 					self.state = "leftBack"
 				else:
 					self.state = "rightForw"
-			else:
+			else: #Start or continue standing still
 				self.state = "idle"
 				self.move = (0,0)
 			
-			if(self.state == "idle"):
+			if(self.state == "idle"): #Breathing animation for when standing still
 				self.frame = (self.frame + 1)%40
 				if(self.frame in [25,26,27,37,38,39]):
 					self.currentImage = self.breathImage[1]
@@ -414,11 +449,11 @@ class LeafState(FightState):
 				else:
 					self.currentImage = self.breathImage[0]
 					self.setBoxes(self.breathBoxes[0])
-			elif(self.state == "crouch"):
+			elif(self.state == "crouch"): #Do nothing if crouching
 				self.frame = 0
-			elif(self.state in ["punch1","kick1","cPunch1","cKick1"]):
+			elif(self.state in ["punch1","kick1","cPunch1","cKick1"]): #Do even more nothing if currently attacking
 				True
-			else:
+			else: #Deal with walking animation. Generic for walking forward or backwards.
 				if(self.state in ["leftForw", "rightForw"]):
 					self.frame += 1
 				elif(self.state in ["leftBack", "rightBack"]):
@@ -442,16 +477,16 @@ class LeafState(FightState):
 				elif(self.frame in [4,5]):
 					self.currentImage = self.stepImage[3]
 					self.setBoxes(self.stepBoxes[3])
-				if(moveFrame):
+				if(moveFrame): #Actually move about when at the end of a step animation
 					if(self.state in ["leftForw","rightBack"]):
-						self.move = (-1*walkSpeed,0)
+						self.move = (-1*self.walkSpeed,0)
 					else:
-						self.move = (walkSpeed,0)
+						self.move = (self.walkSpeed,0)
 				else:
 					self.move = (0,0)
 			self.move = (self.move[0] + self.adjust[0],self.move[1]+self.adjust[1])
 	
-	
+	#Sets appropriate state and conditions when struck by enemy.
 	def setHit(self, punchTime, damage):
 		if(self.getMetaState() == "land"):
 			self.state = "hit"
@@ -463,7 +498,9 @@ class LeafState(FightState):
 			self.state = "jumpHit"
 			self.frame2 = 0
 		self.punchTimer = punchTime
+		self.move = (0,0)
 		
+	#Tells if jumping, standing, or crouching
 	def getMetaState(self):
 		if(self.state in ["crouch","cPunch1","cKick1","crouchHit"]):
 			return "crouch"
@@ -472,27 +509,28 @@ class LeafState(FightState):
 		else:
 			return "land"
 	
+	#Deals with animations when in the process of jumping
 	def nextJump(self, keypress):
 		self.frame += 1
-		if(self.frame >= 28):
+		if(self.frame >= 28): #Deals with landing
 			if(self.state=="jumpHit"):
 				self.state = "hit"
 				self.frame = self.frame2
 			else:
 				self.state = "idle"
 				self.frame = 0
-		elif(self.frame<5 or self.frame>=26):
+		elif(self.frame<5 or self.frame>=26): #Deals with first starting or ending a jump
 			if(self.state=="jumpHit"):
 				self.state = "hit"
 				self.frame = self.frame2
 			else:
 				self.currentImage = self.jumpImage[0]
 				self.setBoxes(self.jumpBoxes[0])
-				self.move = (0,0)
-				self.orth = 0
 				self.state = "jumping"
-				self.frame2 = 0
-		else:
+			self.frame2 = 0
+			self.move = (0,0)
+			self.orth = 0
+		else: #Deals with the actual "in the air" part of jumping
 			if(self.state == "jumpHit"):
 				self.frame2+=1
 				if(self.frame2 == self.punchTimer):
@@ -502,10 +540,10 @@ class LeafState(FightState):
 				else:
 					self.currentImage = self.hitImage[0]
 					self.setBoxes(self.hitBox[0])
-			elif(self.state == "jumping"):
+			elif(self.state == "jumping"): #When just jumping
 				self.currentImage = self.jumpImage[1]
 				self.setBoxes(self.jumpBoxes[1])
-			elif(self.state == "jPunch1"):
+			elif(self.state == "jPunch1"): #When swinging a sword while jumping
 				self.frame2+=1
 				if(self.frame2 == 10):
 					self.state = "jumping"
@@ -521,7 +559,7 @@ class LeafState(FightState):
 				elif(self.frame2 == 1):
 					self.currentImage = self.jAttack1Image[0]
 					self.setBoxes(self.jAttack1Boxes[0])
-			elif(self.state == "jKick1"):
+			elif(self.state == "jKick1"): #When kicking while jumping
 				self.frame2+=1
 				if(self.frame2==20):
 					self.state = "jumping"
@@ -531,27 +569,27 @@ class LeafState(FightState):
 				else:
 					self.currentImage = self.jAttack2Image[1]
 					self.setBoxes(self.jAttack2Boxes[1])
-			self.jumpV -= 1.5
-			if("punchD" in keypress and self.state == "jumping"):
+			self.jumpV -= 1.5 #Accelerate down
+			if("punchD" in keypress and self.state == "jumping"): #Start sword swinging
 				self.state = "jPunch1"
 				self.frame2 = 0
-			elif("kickD" in keypress and self.state == "jumping"):
+			elif("kickD" in keypress and self.state == "jumping"): #Start kicking
 				self.state = "jKick1"
 				self.frame2 = 0
-			elif(self.state == "jumpHit"):
+			elif(self.state == "jumpHit"): #Can't move while struck
 				self.orth = 0
-			elif(self.holdingR and not self.holdingL):
+			elif(self.holdingR and not self.holdingL): #Go Right young Meowth
 				self.orth = 3.5
-			elif(self.holdingL and not self.holdingR):
+			elif(self.holdingL and not self.holdingR): #Go Left young Meowth
 				self.orth = -3.5
-			else:
+			else: #Don't move
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
 			
 		
 		
 
-size = width, height = 600, 300
+size = width, height = 600, 300 #Determines the size of the screen.
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
 BLUE =  (  0,   0, 255)
@@ -559,31 +597,31 @@ GREEN = (  0, 255,   0)
 RED =   (255,   0,   0)
 YELLOW =(255, 255,   0)
 
-walkSpeed = 14
-
+#Initialization stuff
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
-forestStage = pygame.image.load("ForestStage.bmp").convert()
+forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
 stage = forestStage
-leaf = Fighter(LeafState(True),500,170)
-clone = Fighter(LeafState(False),300,170)
+leaf = Fighter(LeafState(False),200,170) # Makes fighter1
+clone = Fighter(LeafState(True),400,170) # Makes fighter2
 player1 = leaf
 player2 = clone
 
 player1.setFoe(player2)
 player2.setFoe(player1)
 
+#Toggles for animation of various hit boxes
 showCollisionBox = False
 showHitBox = False
 showHurtBox = False
 
-while 1:
-	clock.tick(frameRate)
-	keypressA = []
-	keypressB = []
+while 1: #Main game loop
+	clock.tick(frameRate) #Makes sure it runs at appropriate frame rate
+	keypressA = [] #Holder for player 1's input
+	keypressB = [] #Holder for player 2's input
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: sys.exit()
-		if event.type == pygame.KEYDOWN:
+		if event.type == pygame.KEYDOWN: #Buttons pressed
 			if event.key == pygame.K_LEFT:
 				keypressB.append("leftD")
 			if event.key == pygame.K_RIGHT:
@@ -614,7 +652,7 @@ while 1:
 				showHitBox = not showHitBox
 			if event.key == pygame.K_p:
 				showHurtBox = not showHurtBox
-		if event.type == pygame.KEYUP:
+		if event.type == pygame.KEYUP: #Buttons released
 			if event.key == pygame.K_LEFT:
 				keypressB.append("leftU")
 			if event.key == pygame.K_RIGHT:
@@ -640,10 +678,12 @@ while 1:
 			if event.key == pygame.K_s:
 				keypressA.append("downU")
 			
-	
-	player1.update(keypressA)
+	#Run the logic for the two characters
+	player1.update(keypressA) 
 	player2.update(keypressB)
 	
+	#Deal with characters turning to face one another
+	#Probably should move this into the Fighter Class now that I have "foe" implemented
 	if(player1.rect[0]<player2.rect[0]-10 and player1.state.facingLeft):
 		player1.state.setFacing(False)
 		player1.rect = player1.rect.move(5,0)
@@ -655,6 +695,7 @@ while 1:
 		player2.state.setFacing(False)
 		player2.rect = player2.rect.move(5,0)
 		
+	#Draw stuff on the screen	
 	screen.blit(stage, (0,0))
 	screen.blit(player1.image,player1.rect)
 	screen.blit(player2.image,player2.rect)
