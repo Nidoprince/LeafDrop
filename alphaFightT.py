@@ -48,10 +48,17 @@ class Fighter(pygame.sprite.Sprite):
 	#Checks to see if any of its hurt boxes intersect with the enemies hit boxes
 	#If so, it calls setHit on the enemy, making them react to the damage.
 	def checkHit(self):
-		enemy = self.foe.getHitBoxes()
-		for x in self.getHurtBoxes():
-			if(x.collidelist(enemy)!=-1):
-				self.foe.state.setHit(20,0)
+		if(self.state.isHurting):
+			enemy = self.foe.getHitBoxes()
+			for x in self.getHurtBoxes():
+				if(x.collidelist(enemy)!=-1):
+					self.state.stopHurting()
+					if(self.foe.state.isBlocking and ((self.state.getMetaState()!="jump" and self.foe.state.getMetaState()=="crouch") or (self.state.getMetaState()!="crouch" and self.foe.state.getMetaState()=="land"))):
+						self.foe.state.setBlock(10,0)
+						self.state.attackLag = 15
+					else:
+						self.foe.state.setHit(20,0)
+						self.state.attackLag = 0
 	
 	#Checks to see if movement is possible or if you are walking into a wall or enemy.
 	def canMove(self):
@@ -102,6 +109,9 @@ class FightState():
 		self.move = (0,0) #Movement distance sent to the Fighter class each frame.
 		self.punchTimer = 0 #Determines how long stunned by an attack
 		self.state = "idle" #Tells what the character is in the process of doing.  The most important variable in the class.
+		self.isHurting = False #Turns on and off hurt boxes.
+		self.attackLag = 0 #Adds or subtracts time attack delays before you can move again
+		self.isBlocking = False #Tells if you are blocking
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -135,6 +145,10 @@ class FightState():
 
 	def getMovement(self):
 		return self.move
+		
+	#Dummy function for a land/crouch/jump check
+	def getMetaState(self):
+		return "land"
 	
 	#Really shouldnt be in here, but this turns a string of the coordinates of the diagonal corners of a rectangle
 	#into a Rect object
@@ -181,6 +195,22 @@ class FightState():
 		self.state = "hit"
 		self.frame = 0
 		self.punchTimer = punchTime
+	
+	#called when hit by enemies while blocking.  
+	def setBlock(self, punchTime, damage):
+		self.state = "blocking"
+		self.frame = 0
+		self.punchTimer = punchTime
+	
+	#Used to turn off hurtboxes in an attack once it has hit something.
+	def stopHurting(self):
+		self.isHurting = False
+		
+	#Sets some variables needed when starting an attack.
+	def attack(self):
+		self.isHurting = True
+		self.attackLag = 0
+		
 			
 		
 #The subClass of the FightState specifically for the character Leaf.  This controls his animations, his frames,
@@ -237,6 +267,13 @@ class LeafState(FightState):
 		self.crouchHitImage = pygame.image.load("LeafCrouchHit.bmp").convert()
 		self.crouchHitImage.set_colorkey(RED)
 		self.crouchHitBoxes = self.readBoxFile("LeafCrouchHit.txt")
+		self.blockHiImage = pygame.image.load("LeafBlock.bmp").convert()
+		self.blockHiImage.set_colorkey(RED)
+		self.blockHiBoxes = self.readBoxFile("LeafBlock.txt")
+		self.blockLowImage = pygame.image.load("LeafCrouchBlock.bmp").convert()
+		self.blockLowImage.set_colorkey(RED)
+		self.blockLowBoxes = self.readBoxFile("LeafCrouchBlock.txt")
+		
 		
 		#And here is all the multiframe animation data setting
 		for i in range(0,2):
@@ -283,6 +320,8 @@ class LeafState(FightState):
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
 	
+		self.isBlocking = False
+	
 		#Deals with keyboard input that cares about being held down as opposed to just pressed.  
 		#Also deals with adjustment nessessary if step animations interupted, because it normally only
 		#adjusts the location after each full step cycle.  
@@ -317,6 +356,16 @@ class LeafState(FightState):
 			else:
 				self.currentImage = self.hitImage[1]
 				self.setBoxes(self.hitBox[1])
+		elif(self.state == "blocking"): #Animation when blocking
+			self.frame += 1
+			if(self.frame == self.punchTimer):
+				self.state = "idle"
+				self.frame = 0
+				self.currentImage = self.idleImage
+				self.setBoxes(self.idleBoxes)
+			else:
+				self.currentImage = self.blockHiImage
+				self.setBoxes(self.blockHiBoxes)
 		elif(self.state == "crouchHit"): #Animation when struck while crouching
 			self.frame += 1
 			if(self.frame == self.punchTimer):
@@ -327,13 +376,25 @@ class LeafState(FightState):
 			else:
 				self.currentImage = self.crouchHitImage
 				self.setBoxes(self.crouchHitBoxes)
+		elif(self.state == "crouchBlocking"): #Animation when blocking while crouching
+			self.frame += 1
+			if(self.frame == self.punchTimer):
+				self.state = "crouch"
+				self.frame = 0
+				self.currentImage = self.crouchImage
+				self.setBoxes(self.crouchBoxes)
+			else:
+				self.currentImage = self.blockLowImage
+				self.setBoxes(self.blockLowBoxes)
 		elif(self.state == "punch1"): #Animation when performing basic sword attack while standing
 			self.frame += 1
-			if(self.frame == 15):
+			if(self.frame == 15+self.attackLag):
 				self.state = "idle"
 				self.frame = 0
 				self.currentImage = self.idleImage
 				self.setBoxes(self.idleBoxes)
+			elif(self.frame == 7):
+				self.isHurting = False
 			elif(self.frame == 6):
 				self.currentImage = self.attack1Image[4]
 				self.setBoxes(self.attack1Boxes[4])
@@ -348,21 +409,25 @@ class LeafState(FightState):
 				self.setBoxes(self.attack1Boxes[1])
 		elif(self.state == "kick1"):  #Animation for basic kick while standing
 			self.frame += 1
-			if(self.frame == 15):
+			if(self.frame == 15+self.attackLag):
 				self.state = "idle"
 				self.frame = 0
 				self.currentImage = self.idleImage
 				self.setBoxes(self.idleBoxes)
+			elif(self.frame == 5):
+				self.isHurting = False
 			elif(self.frame == 3):
 				self.currentImage = self.attack2Image[1]
 				self.setBoxes(self.attack2Boxes[1])
 		elif(self.state == "cPunch1"):  #Animation for basic sword strike while crouching
 			self.frame += 1
-			if(self.frame == 10):
+			if(self.frame == 10+self.attackLag):
 				self.state = "crouch"
 				self.frame = 0
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
+			elif(self.frame == 6):
+				self.isHurting = False
 			elif(self.frame == 5):
 				self.currentImage = self.cAttack1Image[4]
 				self.setBoxes(self.cAttack1Boxes[4])
@@ -377,11 +442,13 @@ class LeafState(FightState):
 				self.setBoxes(self.cAttack1Boxes[1])
 		elif(self.state == "cKick1"): #Animation for basic kick while crouching
 			self.frame += 1
-			if(self.frame == 15):
+			if(self.frame == 15+self.attackLag):
 				self.state = "crouch"
 				self.frame = 0
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
+			elif(self.frame == 4):
+				self.isHurting = False
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack2Image[1]
 				self.setBoxes(self.cAttack2Boxes[1])
@@ -399,6 +466,7 @@ class LeafState(FightState):
 					self.setBoxes(self.attack1Boxes[1])
 				self.frame = 0
 				self.move = (0,0)
+				self.attack()
 			elif("upD" in keypress): #Starts jumping
 				self.state = "jumping"
 				self.frame = 0
@@ -415,16 +483,20 @@ class LeafState(FightState):
 					self.setBoxes(self.attack2Boxes[0])
 				self.frame = 0
 				self.move = (0,0)
+				self.attack()
 			elif(self.holdingD): #Start or continue crouching
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
 				self.move = (0,0)
+				if((self.facingLeft and self.holdingL) or (not self.facingLeft and self.holdingR)):
+					self.isBlocking = True
 			elif(self.holdingL and not self.holdingR): #Start or continue walking left
 				if(self.state == "idle"):
 					self.frame = 0
 				if(not self.facingLeft):
 					self.state = "rightBack"
+					self.isBlocking = True
 				else:
 					self.state = "leftForw"
 			elif(self.holdingR and not self.holdingL): #Start or continue walking right
@@ -432,6 +504,7 @@ class LeafState(FightState):
 					self.frame = 0
 				if(self.facingLeft):
 					self.state = "leftBack"
+					self.isBlocking = True
 				else:
 					self.state = "rightForw"
 			else: #Start or continue standing still
@@ -499,10 +572,23 @@ class LeafState(FightState):
 			self.frame2 = 0
 		self.punchTimer = punchTime
 		self.move = (0,0)
+		self.isHurting = False
+		
+	#Sets appropriate state and conditions when struck by enemy.
+	def setBlock(self, punchTime, damage):
+		if(self.getMetaState() == "land"):
+			self.state = "blocking"
+			self.frame = 0
+		elif(self.getMetaState() == "crouch"):
+			self.state = "crouchBlocking"
+			self.frame = 0
+		self.punchTimer = punchTime
+		self.move = (0,0)
+		self.isHurting = False
 		
 	#Tells if jumping, standing, or crouching
 	def getMetaState(self):
-		if(self.state in ["crouch","cPunch1","cKick1","crouchHit"]):
+		if(self.state in ["crouch","cPunch1","cKick1","crouchHit","crouchBlocking"]):
 			return "crouch"
 		elif(self.state in ["jumping","jumpHit","jKick1","jPunch1"]):
 			return "jump"
@@ -545,8 +631,10 @@ class LeafState(FightState):
 				self.setBoxes(self.jumpBoxes[1])
 			elif(self.state == "jPunch1"): #When swinging a sword while jumping
 				self.frame2+=1
-				if(self.frame2 == 10):
+				if(self.frame2 == 10+self.attackLag):
 					self.state = "jumping"
+				elif(self.frame2 == 7):
+					self.isHurting = False
 				elif(self.frame2 == 6):
 					self.currentImage = self.jAttack1Image[3]
 					self.setBoxes(self.jAttack1Boxes[3])
@@ -561,7 +649,7 @@ class LeafState(FightState):
 					self.setBoxes(self.jAttack1Boxes[0])
 			elif(self.state == "jKick1"): #When kicking while jumping
 				self.frame2+=1
-				if(self.frame2==20):
+				if(self.frame2==20+self.attackLag):
 					self.state = "jumping"
 				elif(self.frame == 1):
 					self.currentImage = self.jAttack2Image[0]
@@ -573,9 +661,11 @@ class LeafState(FightState):
 			if("punchD" in keypress and self.state == "jumping"): #Start sword swinging
 				self.state = "jPunch1"
 				self.frame2 = 0
+				self.attack()
 			elif("kickD" in keypress and self.state == "jumping"): #Start kicking
 				self.state = "jKick1"
 				self.frame2 = 0
+				self.attack()
 			elif(self.state == "jumpHit"): #Can't move while struck
 				self.orth = 0
 			elif(self.holdingR and not self.holdingL): #Go Right young Meowth
