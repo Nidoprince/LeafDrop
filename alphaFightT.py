@@ -2,6 +2,51 @@ import pygame, sys
 
 frameRate = 30
 
+#Meta class for projectiles
+class Projectile(pygame.sprite.Sprite):
+	def __init__(self, images, x, y, velocity):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = images[0]
+		self.animations = images
+		self.frame = 0
+		self.rect = self.image.get_rect()
+		self.rect = self.rect.move(x,y)
+		self.vel = velocity
+		
+	def update(self):
+		self.frame = (self.frame+1)%len(self.animations)
+		self.image = self.animations[self.frame]
+		self.rect = self.rect.move(self.vel)
+		self.checkHit()
+		self.checkBorder()
+		
+	def checkHit(self):
+		True
+		
+	def checkBorder(self):
+		if(self.rect.right < 0 or self.rect.left > width or self.rect.top > height or self.rect.bottom < 0):
+			self.kill()
+
+
+class DamagingProjectile(Projectile):
+	def __init__(self, images, x, y, velocity, damage, stunTime):
+		Projectile.__init__(self, images, x, y, velocity)
+		self.damage = damage
+		self.stunTime = stunTime
+		self.foe = None
+		
+	def setFoe(self, foe):
+		self.foe = foe
+		
+	def checkHit(self):
+		enemy = self.foe.getHitBoxes()
+		if(self.rect.collidelist(enemy)!=-1):
+			if(self.foe.state.isBlocking):
+				self.foe.state.setBlock(int(self.stunTime/2), 0)
+			else:
+				self.foe.state.setHit(self.stunTime, self.damage)
+			self.kill()
+		
 
 #Basic class of the combatants in the game.  Contains functions dealing with a given character's interaction with 
 #the opposing fighter, and the stage around them.
@@ -13,12 +58,26 @@ class Fighter(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect = self.rect.move(x,y)
 		self.stopbox = self.state.getStopBox()
+		self.projectiles = pygame.sprite.Group()
 		self.foe = None
 		
 	#Sets who the opponent is so they can call each others methods and look at each others hit boxes	
 	def setFoe(self, foe):
 		self.foe = foe
+		
+	#Adds a new projecile to the list
+	def addProjectile(self, images, x, y, velocity, damage, stun):
+		proj = DamagingProjectile(images, x+self.rect[0], y+self.rect[1], velocity, damage, stun)
+		proj.setFoe(self.foe)
+		self.projectiles.add(proj)
 	
+	#Checks to see if their is a projectile to snag
+	def checkProjectile(self):
+		if(self.state.projectile):
+			proj = self.state.projectile
+			self.addProjectile(proj[0],proj[1],proj[2],proj[3],proj[4],proj[5])
+			self.state.clearProjectile()
+		
 	#Called every frame to update whats happening.  Calls the State update method which does most of the heavy lifting.
 	#Deals with movement and collision detection and stuff.
 	def update(self, keypress):
@@ -27,6 +86,8 @@ class Fighter(pygame.sprite.Sprite):
 		self.stopbox = self.state.getStopBox()
 		moveTest = self.canMove()
 		self.checkHit()
+		self.checkProjectile()
+		self.projectiles.update()
 		if(moveTest[0]):
 			self.rect = self.rect.move(self.state.getMovement())
 			if(self.state.getMovement()!=(0,0)):
@@ -113,6 +174,7 @@ class FightState():
 		self.attackLag = 0 #Adds or subtracts time attack delays before you can move again
 		self.isBlocking = False #Tells if you are blocking
 		self.comboMem = [] #Remembers your last few commands for the purposes of special attacks.
+		self.projectile = None #Holds any projectiles the character might fire
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -146,7 +208,17 @@ class FightState():
 
 	def getMovement(self):
 		return self.move
+	
+	def clearProjectile(self):
+		self.projectile = None
 		
+	def setProjectile(self, images, x, y, vel, damage, stun):
+		if(not self.facingLeft):
+			r = images[0].get_rect()
+			x = 100-x-r.width
+			vel = (-vel[0],vel[1])
+		self.projectile = [images, x, y, vel, damage, stun]
+	
 	#Dummy function for a land/crouch/jump check
 	def getMetaState(self):
 		return "land"
@@ -265,6 +337,8 @@ class LeafState(FightState):
 		self.jAttack1Boxes = [0,0,0,0]
 		self.jAttack2Boxes = [0,0]
 		self.sAttack1Boxes = [0,0,0]
+		#Initialize projectile images
+		self.tankenImage = [0,0,0]
 		
 		#Sets all the single frame animation variables for sprites and hitboxes
 		self.idleImage = self.currentImage.copy() 
@@ -328,6 +402,9 @@ class LeafState(FightState):
 			self.sAttack1Image[i] = pygame.image.load("LeafSpecial1/LeafHtkFrm"+str(i+1)+".bmp").convert()
 			self.sAttack1Image[i].set_colorkey(RED)
 			self.sAttack1Boxes[i] = self.readBoxFile("LeafSpecial1/LeafHtkFrm"+str(i+1)+".txt")
+		for i in range(0,3):
+			self.tankenImage[i] = pygame.image.load("HaNoTanken/HntknFrm"+str(i+1)+".bmp").convert()
+			self.tankenImage[i].set_colorkey(RED)
 		
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
@@ -409,6 +486,7 @@ class LeafState(FightState):
 			elif(self.frame == 6):
 				self.currentImage = self.sAttack1Image[2]
 				self.setBoxes(self.sAttack1Boxes[2])
+				self.setProjectile(self.tankenImage,30,35,(-7,0),0,15)
 			elif(self.frame == 3):
 				self.currentImage = self.sAttack1Image[1]
 				self.setBoxes(self.sAttack1Boxes[1])
@@ -836,6 +914,10 @@ while 1: #Main game loop
 	screen.blit(stage, (0,0))
 	screen.blit(player1.image,player1.rect)
 	screen.blit(player2.image,player2.rect)
+	for x in player1.projectiles:
+		screen.blit(x.image,x.rect)
+	for y in player2.projectiles:
+		screen.blit(y.image,y.rect)
 	if(showCollisionBox):
 		s = pygame.Surface((600,400))
 		s.set_alpha(128)
