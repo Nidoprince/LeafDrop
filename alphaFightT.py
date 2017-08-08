@@ -112,6 +112,7 @@ class FightState():
 		self.isHurting = False #Turns on and off hurt boxes.
 		self.attackLag = 0 #Adds or subtracts time attack delays before you can move again
 		self.isBlocking = False #Tells if you are blocking
+		self.comboMem = [] #Remembers your last few commands for the purposes of special attacks.
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -211,6 +212,11 @@ class FightState():
 		self.isHurting = True
 		self.attackLag = 0
 		
+	#Adds new commands to combo memory while forgetting very old ones
+	def moveRemember(self, newCommands):
+		self.comboMem = self.comboMem + newCommands
+		self.comboMem = self.comboMem[-10:]
+		
 			
 		
 #The subClass of the FightState specifically for the character Leaf.  This controls his animations, his frames,
@@ -246,6 +252,7 @@ class LeafState(FightState):
 		self.jumpImage = [0,0]
 		self.jAttack1Image = [0,0,0,0]
 		self.jAttack2Image = [0,0]
+		self.sAttack1Image = [0,0,0]
 		#Initializes all the lists for differnet animations' boxes
 		self.hitBox = [0,0] #Uses a slightly different naming format than all the rest because of the previously existing "hitBoxes" variable.
 		self.attack1Boxes = [0,0,0,0,0]
@@ -257,6 +264,7 @@ class LeafState(FightState):
 		self.jumpBoxes = [0,0]
 		self.jAttack1Boxes = [0,0,0,0]
 		self.jAttack2Boxes = [0,0]
+		self.sAttack1Boxes = [0,0,0]
 		
 		#Sets all the single frame animation variables for sprites and hitboxes
 		self.idleImage = self.currentImage.copy() 
@@ -316,10 +324,15 @@ class LeafState(FightState):
 			self.jAttack2Image[i] = pygame.image.load("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".bmp").convert()
 			self.jAttack2Image[i].set_colorkey(RED)
 			self.jAttack2Boxes[i] = self.readBoxFile("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".txt")
+		for i in range(0,3):
+			self.sAttack1Image[i] = pygame.image.load("LeafSpecial1/LeafHtkFrm"+str(i+1)+".bmp").convert()
+			self.sAttack1Image[i].set_colorkey(RED)
+			self.sAttack1Boxes[i] = self.readBoxFile("LeafSpecial1/LeafHtkFrm"+str(i+1)+".txt")
 		
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
 	
+		self.moveRemember(keypress)
 		self.isBlocking = False
 	
 		#Deals with keyboard input that cares about being held down as opposed to just pressed.  
@@ -386,6 +399,19 @@ class LeafState(FightState):
 			else:
 				self.currentImage = self.blockLowImage
 				self.setBoxes(self.blockLowBoxes)
+		elif(self.state == "sAttack1"): #Animation for the Ha no Tanken Speical Attack
+			self.frame += 1
+			if(self.frame == 15):
+				self.state = "idle"
+				self.frame = 0
+				self.currentImage = self.idleImage
+				self.setBoxes(self.idleBoxes)
+			elif(self.frame == 6):
+				self.currentImage = self.sAttack1Image[2]
+				self.setBoxes(self.sAttack1Boxes[2])
+			elif(self.frame == 3):
+				self.currentImage = self.sAttack1Image[1]
+				self.setBoxes(self.sAttack1Boxes[1])
 		elif(self.state == "punch1"): #Animation when performing basic sword attack while standing
 			self.frame += 1
 			if(self.frame == 15+self.attackLag):
@@ -456,7 +482,9 @@ class LeafState(FightState):
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]): #Logic for passive states that you can initiate attacks from.
 			if("punchD" in keypress): #Starts basic sword swing.
-				if(self.state == "crouch"): #When crouched
+				if(self.specialCheckStart()): #Tests for special attacks
+					True
+				elif(self.state == "crouch"): #When crouched
 					self.state = "cPunch1"
 					self.currentImage = self.cAttack1Image[1]
 					self.setBoxes(self.cAttack1Boxes[1])
@@ -489,7 +517,7 @@ class LeafState(FightState):
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
 				self.move = (0,0)
-				if((self.facingLeft and self.holdingL) or (not self.facingLeft and self.holdingR)):
+				if((self.facingLeft and self.holdingR) or (not self.facingLeft and self.holdingL)):
 					self.isBlocking = True
 			elif(self.holdingL and not self.holdingR): #Start or continue walking left
 				if(self.state == "idle"):
@@ -558,6 +586,24 @@ class LeafState(FightState):
 				else:
 					self.move = (0,0)
 			self.move = (self.move[0] + self.adjust[0],self.move[1]+self.adjust[1])
+		
+	#Checks for special attacks able to be performed and initiates them if possible
+	def specialCheckStart(self):
+		combo = False
+		if(self.facingLeft):
+			if(self.comboMem[-4:] == ["downD","leftD","downU","punchD"]):
+				combo = "hanotanken"
+		else:
+			if(self.comboMem[-4:] == ["downD","rightD","downU","punchD"]):
+				combo = "hanotanken"
+		
+		if(combo == "hanotanken"):
+			self.state = "sAttack1"
+			self.currentImage = self.sAttack1Image[0]
+			self.currentBoxes = self.sAttack1Boxes[0]
+		
+		return combo
+	
 	
 	#Sets appropriate state and conditions when struck by enemy.
 	def setHit(self, punchTime, damage):
@@ -771,6 +817,7 @@ while 1: #Main game loop
 	#Run the logic for the two characters
 	player1.update(keypressA) 
 	player2.update(keypressB)
+	
 	
 	#Deal with characters turning to face one another
 	#Probably should move this into the Fighter Class now that I have "foe" implemented
