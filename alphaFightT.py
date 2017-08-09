@@ -92,6 +92,13 @@ class Fighter(pygame.sprite.Sprite):
 			self.rect = self.rect.move(self.state.getMovement())
 			if(self.state.getMovement()!=(0,0)):
 				self.state.stopped = False
+				#Turns player to face enemy if they are facing the wrong way and move towards them.
+				if(self.state.facingLeft and self.state.getMovement()[0] > 0 and self.rect[0]<self.foe.rect[0]-10):
+					self.state.facingLeft = False
+					self.rect = self.rect.move(5,0)
+				elif(not self.state.facingLeft and self.state.getMovement()[0] < 0 and self.rect[0]-10>self.foe.rect[0]):
+					self.state.facingLeft = True
+					self.rect = self.rect.move(-5,0)
 		else:
 			self.state.stopped = True
 			self.rect[0]=moveTest[1][0]
@@ -896,20 +903,6 @@ while 1: #Main game loop
 	player1.update(keypressA) 
 	player2.update(keypressB)
 	
-	
-	#Deal with characters turning to face one another
-	#Probably should move this into the Fighter Class now that I have "foe" implemented
-	if(player1.rect[0]<player2.rect[0]-10 and player1.state.facingLeft):
-		player1.state.setFacing(False)
-		player1.rect = player1.rect.move(5,0)
-		player2.state.setFacing(True)
-		player2.rect = player2.rect.move(-5,0)
-	elif(player1.rect[0]-10>player2.rect[0] and player2.state.facingLeft):
-		player1.state.setFacing(True)
-		player1.rect = player1.rect.move(-5,0)
-		player2.state.setFacing(False)
-		player2.rect = player2.rect.move(5,0)
-		
 	#Draw stuff on the screen	
 	screen.blit(stage, (0,0))
 	screen.blit(player1.image,player1.rect)
