@@ -46,6 +46,9 @@ class DamagingProjectile(Projectile):
 			else:
 				self.foe.state.setHit(self.stunTime, self.damage)
 			self.kill()
+			
+	def destroy(self):
+		self.kill()
 		
 
 #Basic class of the combatants in the game.  Contains functions dealing with a given character's interaction with 
@@ -88,6 +91,7 @@ class Fighter(pygame.sprite.Sprite):
 		self.checkHit()
 		self.checkProjectile()
 		self.projectiles.update()
+		pygame.sprite.groupcollide(self.projectiles,self.foe.projectiles,True,True)
 		if(moveTest[0]):
 			self.rect = self.rect.move(self.state.getMovement())
 			if(self.state.getMovement()!=(0,0)):
@@ -118,7 +122,12 @@ class Fighter(pygame.sprite.Sprite):
 	def checkHit(self):
 		if(self.state.isHurting):
 			enemy = self.foe.getHitBoxes()
-			for x in self.getHurtBoxes():
+			enemyProj = self.foe.projectiles
+			me = self.getHurtBoxes()
+			for x in enemyProj:
+				if(x.rect.collidelist(me)!=-1):
+					x.destroy()
+			for x in me:
 				if(x.collidelist(enemy)!=-1):
 					self.state.stopHurting()
 					if(self.foe.state.isBlocking and ((self.state.getMetaState()!="jump" and self.foe.state.getMetaState()=="crouch") or (self.state.getMetaState()!="crouch" and self.foe.state.getMetaState()=="land"))):
@@ -128,6 +137,12 @@ class Fighter(pygame.sprite.Sprite):
 						self.foe.state.setHit(20,0)
 						self.state.attackLag = 0
 	
+	#Returns all the rects of all the projects
+	def getProjRect(self):
+		out = []
+		for x in self.projectiles:
+			out.append(x.rect)
+		return out
 	#Checks to see if movement is possible or if you are walking into a wall or enemy.
 	def canMove(self):
 		me = self.getStopBox().move(self.state.getMovement())
