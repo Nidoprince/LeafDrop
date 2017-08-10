@@ -143,6 +143,7 @@ class Fighter(pygame.sprite.Sprite):
 		for x in self.projectiles:
 			out.append(x.rect)
 		return out
+		
 	#Checks to see if movement is possible or if you are walking into a wall or enemy.
 	def canMove(self):
 		me = self.getStopBox().move(self.state.getMovement())
@@ -197,6 +198,7 @@ class FightState():
 		self.isBlocking = False #Tells if you are blocking
 		self.comboMem = [] #Remembers your last few commands for the purposes of special attacks.
 		self.projectile = None #Holds any projectiles the character might fire
+		self.health = 150 #Current Health
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -508,7 +510,7 @@ class LeafState(FightState):
 			elif(self.frame == 6):
 				self.currentImage = self.sAttack1Image[2]
 				self.setBoxes(self.sAttack1Boxes[2])
-				self.setProjectile(self.tankenImage,30,35,(-7,0),0,15)
+				self.setProjectile(self.tankenImage,30,35,(-7,0),20,15)
 			elif(self.frame == 3):
 				self.currentImage = self.sAttack1Image[1]
 				self.setBoxes(self.sAttack1Boxes[1])
@@ -568,7 +570,7 @@ class LeafState(FightState):
 				self.setBoxes(self.cAttack1Boxes[1])
 		elif(self.state == "cKick1"): #Animation for basic kick while crouching
 			self.frame += 1
-			if(self.frame == 15+self.attackLag):
+			if(self.frame == 5+self.attackLag):
 				self.state = "crouch"
 				self.frame = 0
 				self.currentImage = self.crouchImage
@@ -719,6 +721,9 @@ class LeafState(FightState):
 		self.punchTimer = punchTime
 		self.move = (0,0)
 		self.isHurting = False
+		self.health = self.health - damage
+		if(self.health<0):
+			self.health = 0
 		
 	#Sets appropriate state and conditions when struck by enemy.
 	def setBlock(self, punchTime, damage):
@@ -821,8 +826,44 @@ class LeafState(FightState):
 			else: #Don't move
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
-			
+
+#Used to keep track of health from 1 second ago.  
+class OldHealth():
+	def __init__(self):
+		self.p1Health = [100]
+		self.p2Health = [100]
+	def iterate(self):
+		self.p1Health.append(player1.state.health)
+		self.p1Health = self.p1Health[-30:]
+		self.p2Health.append(player2.state.health)
+		self.p2Health = self.p2Health[-30:]
+		return [self.p1Health[0],self.p2Health[0]]
 		
+def drawHUD():
+	healths = oldHealths.iterate()
+	p1Status = GREEN
+	p2Status = GREEN
+	if(player1.state.state in ["hit","crouchHit","jumpHit"]):
+		p1Status = RED
+	if(player1.state.state in ["blocking","crouchBlocking"]):
+		p1Status = BLUE
+	if(player2.state.state in ["hit","crouchHit","jumpHit"]):
+		p2Status = RED
+	if(player2.state.state in ["blocking","crouchBlocking"]):
+		p2Status = BLUE
+	pygame.draw.rect(screen, BLUE, [50, 5, 150, 20])
+	pygame.draw.rect(screen, BLUE, [width-200, 5, 150, 20])
+	pygame.draw.rect(screen, RED, [50, 5, healths[0], 20])
+	pygame.draw.rect(screen, RED, [width-50-healths[1], 5, healths[1], 20])
+	pygame.draw.rect(screen, GREEN, [50, 5, player1.state.health, 20])
+	pygame.draw.rect(screen, GREEN, [width-50-player2.state.health, 5, player2.state.health, 20])
+	pygame.draw.rect(screen, p1Status, [5, 5, 40, 45])
+	pygame.draw.rect(screen, p2Status, [width-45, 5, 40, 45])
+	pygame.draw.rect(screen, BLACK, [49, 5, 152, 20], 3)
+	pygame.draw.rect(screen, BLACK, [width-202, 5, 152, 20], 3)
+	pygame.draw.rect(screen, BLACK, [5, 5, 40, 45], 3)
+	pygame.draw.rect(screen, BLACK, [width-45, 5, 40, 45], 3)
+	
 		
 
 size = width, height = 600, 300 #Determines the size of the screen.
@@ -845,6 +886,7 @@ player2 = clone
 
 player1.setFoe(player2)
 player2.setFoe(player1)
+oldHealths = OldHealth() #Keeps track of healths from a second ago
 
 #Toggles for animation of various hit boxes
 showCollisionBox = False
@@ -948,4 +990,5 @@ while 1: #Main game loop
 			screen.blit(s,a,a)
 		for a in player2.getHurtBoxes():
 			screen.blit(s,a,a)
+	drawHUD()
 	pygame.display.flip()
