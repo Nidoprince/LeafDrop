@@ -863,6 +863,17 @@ def drawHUD():
 	pygame.draw.rect(screen, BLACK, [width-202, 5, 152, 20], 3)
 	pygame.draw.rect(screen, BLACK, [5, 5, 40, 45], 3)
 	pygame.draw.rect(screen, BLACK, [width-45, 5, 40, 45], 3)
+	pygame.draw.rect(screen, BLACK, [50, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [75, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [100, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [125, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [150, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [width-66, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [width-91, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [width-116, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [width-141, 30, 15, 15], 2)
+	pygame.draw.rect(screen, BLACK, [width-166, 30, 15, 15], 2)
+	
 	
 		
 
