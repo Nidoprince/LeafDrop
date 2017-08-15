@@ -77,7 +77,12 @@ while not done:
     # Draw a circle
     pygame.draw.circle(screen, BLUE, [120, 15], 40)
 	
+	
+	
     screen.blit(world, [200, 150])
+    test = pygame.image.load("LeafDefeat1/LeafDefeatFrm20.bmp").convert()
+    test.set_colorkey(RED)
+    screen.blit(test, [0,0])
     
     # Go ahead and update the screen with what we've drawn.
     # This MUST happen after all the other drawing commands.

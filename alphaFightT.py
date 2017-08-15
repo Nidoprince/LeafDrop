@@ -62,6 +62,7 @@ class Fighter(pygame.sprite.Sprite):
 		self.rect = self.rect.move(x,y)
 		self.stopbox = self.state.getStopBox()
 		self.projectiles = pygame.sprite.Group()
+		self.gameOver = False
 		self.foe = None
 		
 	#Sets who the opponent is so they can call each others methods and look at each others hit boxes	
@@ -92,6 +93,7 @@ class Fighter(pygame.sprite.Sprite):
 		self.checkProjectile()
 		self.projectiles.update()
 		pygame.sprite.groupcollide(self.projectiles,self.foe.projectiles,True,True)
+		self.defeatCheck()
 		if(moveTest[0]):
 			self.rect = self.rect.move(self.state.getMovement())
 			if(self.state.getMovement()!=(0,0)):
@@ -117,6 +119,16 @@ class Fighter(pygame.sprite.Sprite):
 	def getHurtBoxes(self):
 		return [pygame.Rect(self.rect[0]+a[0],self.rect[1]+a[1],a[2],a[3]) for a in self.state.getHurtBoxes()]
 	
+	def defeatCheck(self):
+		if(self.state.health == 0 and not self.gameOver):
+			self.state.state = "defeat"
+			self.state.frame = 0
+			self.foe.rect = self.foe.rect.move(0,-20)
+			self.foe.state.state = "victory"
+			self.foe.state.frame = 0
+			self.gameOver = True
+	
+	
 	#Checks to see if any of its hurt boxes intersect with the enemies hit boxes
 	#If so, it calls setHit on the enemy, making them react to the damage.
 	def checkHit(self):
@@ -134,7 +146,7 @@ class Fighter(pygame.sprite.Sprite):
 						self.foe.state.setBlock(10,0)
 						self.state.attackLag = 15
 					else:
-						self.foe.state.setHit(20,0)
+						self.foe.state.setHit(20,20)
 						self.state.attackLag = 0
 	
 	#Returns all the rects of all the projects
@@ -349,6 +361,8 @@ class LeafState(FightState):
 		self.jAttack1Image = [0,0,0,0]
 		self.jAttack2Image = [0,0]
 		self.sAttack1Image = [0,0,0]
+		self.victory1Image = [0,0,0,0]
+		self.defeat1Image = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 		#Initializes all the lists for differnet animations' boxes
 		self.hitBox = [0,0] #Uses a slightly different naming format than all the rest because of the previously existing "hitBoxes" variable.
 		self.attack1Boxes = [0,0,0,0,0]
@@ -429,6 +443,12 @@ class LeafState(FightState):
 		for i in range(0,3):
 			self.tankenImage[i] = pygame.image.load("HaNoTanken/HntknFrm"+str(i+1)+".bmp").convert()
 			self.tankenImage[i].set_colorkey(RED)
+		for i in range(0,4):
+			self.victory1Image[i] = pygame.image.load("LeafVictory1/LeafVctFrm"+str(i+1)+".bmp").convert()
+			self.victory1Image[i].set_colorkey(RED)
+		for i in range(0,20):
+			self.defeat1Image[i] = pygame.image.load("LeafDefeat1/LeafDefeatFrm"+str(i+1)+".bmp").convert()
+			self.defeat1Image[i].set_colorkey(RED)
 		
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
@@ -457,7 +477,26 @@ class LeafState(FightState):
 		if("downD" in keypress):self.holdingD=True
 		if("downU" in keypress):self.holdingD=False
 		
-		if(self.state == "hit"): #Animation when struck
+		
+		if(self.state == "defeat"): #Animation when losing
+			self.frame += 0.3
+			if(self.frame > 30):
+				self.currentImage = self.defeat1Image[19]
+			elif(self.frame > 18):
+				self.currentImage = self.defeat1Image[18]
+			else:
+				self.currentImage = self.defeat1Image[int(self.frame) - 1]
+		elif(self.state == "victory"): #Animation when winning
+			self.frame += 1
+			if(self.frame >10):
+				self.currentImage = self.victory1Image[3]
+			elif(self.frame >6):
+				self.currentImage = self.victory1Image[2]
+			elif(self.frame > 3):
+				self.currentImage = self.victory1Image[1]
+			else:
+				self.currentImage = self.victory1Image[1]
+		elif(self.state == "hit"): #Animation when struck
 			self.frame += 1
 			if(self.frame == self.punchTimer):
 				self.state = "idle"
