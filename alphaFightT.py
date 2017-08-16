@@ -123,7 +123,6 @@ class Fighter(pygame.sprite.Sprite):
 		if(self.state.health == 0 and not self.gameOver):
 			self.state.state = "defeat"
 			self.state.frame = 0
-			self.foe.rect = self.foe.rect.move(0,-20)
 			self.foe.state.state = "victory"
 			self.foe.state.frame = 0
 			self.gameOver = True
@@ -211,6 +210,8 @@ class FightState():
 		self.comboMem = [] #Remembers your last few commands for the purposes of special attacks.
 		self.projectile = None #Holds any projectiles the character might fire
 		self.health = 150 #Current Health
+		self.healthRed = 150 #Health that can be restored to, and is only temporarily gone.
+		self.healTimer = 0 #How long before you can start healing again.  
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -304,6 +305,7 @@ class FightState():
 		self.state = "hit"
 		self.frame = 0
 		self.punchTimer = punchTime
+		self.healTimer = 30
 	
 	#called when hit by enemies while blocking.  
 	def setBlock(self, punchTime, damage):
@@ -324,6 +326,17 @@ class FightState():
 	def moveRemember(self, newCommands):
 		self.comboMem = self.comboMem + newCommands
 		self.comboMem = self.comboMem[-10:]
+		
+	#Starts to heal if not damaged for a second
+	def passiveHeal(self):
+		if(self.healTimer > 0):
+			self.healTimer -= 1
+		elif(self.healthRed > self.health):
+			if(self.health > 0):
+				self.health += 1
+			self.healthRed -= 2
+		elif(self.healthRed < self.health):
+			self.healthRed = self.health
 		
 			
 		
@@ -455,11 +468,13 @@ class LeafState(FightState):
 	
 		self.moveRemember(keypress)
 		self.isBlocking = False
+		self.passiveHeal()
 	
 		#Deals with keyboard input that cares about being held down as opposed to just pressed.  
 		#Also deals with adjustment nessessary if step animations interupted, because it normally only
 		#adjusts the location after each full step cycle.  
 		self.adjust = (0,0)
+		self.move = (0,0)
 		if("leftD" in keypress):self.holdingL=True
 		if("leftU" in keypress):
 			self.holdingL=False
@@ -494,8 +509,11 @@ class LeafState(FightState):
 				self.currentImage = self.victory1Image[2]
 			elif(self.frame > 3):
 				self.currentImage = self.victory1Image[1]
+			elif(self.frame > 1):
+				self.currentImage = self.victory1Image[0]
 			else:
-				self.currentImage = self.victory1Image[1]
+				self.currentImage = self.victory1Image[0]
+				self.move = (0,-20)
 		elif(self.state == "hit"): #Animation when struck
 			self.frame += 1
 			if(self.frame == self.punchTimer):
@@ -627,19 +645,17 @@ class LeafState(FightState):
 					True
 				elif(self.state == "crouch"): #When crouched
 					self.state = "cPunch1"
-					self.currentImage = self.cAttack1Image[1]
-					self.setBoxes(self.cAttack1Boxes[1])
+					self.currentImage = self.cAttack1Image[0]
+					self.setBoxes(self.cAttack1Boxes[0])
 				else: #When standing
 					self.state = "punch1"
-					self.currentImage = self.attack1Image[1]
-					self.setBoxes(self.attack1Boxes[1])
+					self.currentImage = self.attack1Image[0]
+					self.setBoxes(self.attack1Boxes[0])
 				self.frame = 0
-				self.move = (0,0)
 				self.attack()
 			elif("upD" in keypress): #Starts jumping
 				self.state = "jumping"
 				self.frame = 0
-				self.move = (0,0)
 				self.jumpV = 16.5 #This tells us how fast we are jumping upward.  Currently very specific number needed or you won't land on the ground, but will instead fly.
 			elif("kickD" in keypress): 
 				if(self.state == "crouch"): #Start kicking while crouched
@@ -651,13 +667,11 @@ class LeafState(FightState):
 					self.currentImage = self.attack2Image[0]
 					self.setBoxes(self.attack2Boxes[0])
 				self.frame = 0
-				self.move = (0,0)
 				self.attack()
 			elif(self.holdingD): #Start or continue crouching
 				self.state = "crouch"
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
-				self.move = (0,0)
 				if((self.facingLeft and self.holdingR) or (not self.facingLeft and self.holdingL)):
 					self.isBlocking = True
 			elif(self.holdingL and not self.holdingR): #Start or continue walking left
@@ -724,8 +738,6 @@ class LeafState(FightState):
 						self.move = (-1*self.walkSpeed,0)
 					else:
 						self.move = (self.walkSpeed,0)
-				else:
-					self.move = (0,0)
 			self.move = (self.move[0] + self.adjust[0],self.move[1]+self.adjust[1])
 		
 	#Checks for special attacks able to be performed and initiates them if possible
@@ -758,8 +770,8 @@ class LeafState(FightState):
 			self.state = "jumpHit"
 			self.frame2 = 0
 		self.punchTimer = punchTime
-		self.move = (0,0)
 		self.isHurting = False
+		self.healTimer = 30
 		self.health = self.health - damage
 		if(self.health<0):
 			self.health = 0
@@ -773,7 +785,6 @@ class LeafState(FightState):
 			self.state = "crouchBlocking"
 			self.frame = 0
 		self.punchTimer = punchTime
-		self.move = (0,0)
 		self.isHurting = False
 		
 	#Tells if jumping, standing, or crouching
@@ -804,7 +815,6 @@ class LeafState(FightState):
 				self.setBoxes(self.jumpBoxes[0])
 				self.state = "jumping"
 			self.frame2 = 0
-			self.move = (0,0)
 			self.orth = 0
 		else: #Deals with the actual "in the air" part of jumping
 			if(self.state == "jumpHit"):
@@ -865,21 +875,8 @@ class LeafState(FightState):
 			else: #Don't move
 				self.orth = 0
 			self.move = (self.orth,-self.jumpV)
-
-#Used to keep track of health from 1 second ago.  
-class OldHealth():
-	def __init__(self):
-		self.p1Health = [100]
-		self.p2Health = [100]
-	def iterate(self):
-		self.p1Health.append(player1.state.health)
-		self.p1Health = self.p1Health[-30:]
-		self.p2Health.append(player2.state.health)
-		self.p2Health = self.p2Health[-30:]
-		return [self.p1Health[0],self.p2Health[0]]
 		
 def drawHUD():
-	healths = oldHealths.iterate()
 	p1Status = GREEN
 	p2Status = GREEN
 	if(player1.state.state in ["hit","crouchHit","jumpHit"]):
@@ -892,8 +889,8 @@ def drawHUD():
 		p2Status = BLUE
 	pygame.draw.rect(screen, BLUE, [50, 5, 150, 20])
 	pygame.draw.rect(screen, BLUE, [width-200, 5, 150, 20])
-	pygame.draw.rect(screen, RED, [50, 5, healths[0], 20])
-	pygame.draw.rect(screen, RED, [width-50-healths[1], 5, healths[1], 20])
+	pygame.draw.rect(screen, RED, [50, 5, player1.state.healthRed, 20])
+	pygame.draw.rect(screen, RED, [width-50-player2.state.healthRed, 5, player2.state.healthRed, 20])
 	pygame.draw.rect(screen, GREEN, [50, 5, player1.state.health, 20])
 	pygame.draw.rect(screen, GREEN, [width-50-player2.state.health, 5, player2.state.health, 20])
 	pygame.draw.rect(screen, p1Status, [5, 5, 40, 45])
@@ -936,7 +933,6 @@ player2 = clone
 
 player1.setFoe(player2)
 player2.setFoe(player1)
-oldHealths = OldHealth() #Keeps track of healths from a second ago
 
 #Toggles for animation of various hit boxes
 showCollisionBox = False
