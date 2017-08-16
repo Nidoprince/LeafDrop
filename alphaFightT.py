@@ -790,6 +790,8 @@ class LeafState(FightState):
 		self.health = self.health - damage
 		if(self.health<0):
 			self.health = 0
+		if(len(self.ammo)<2):
+			self.ammo.append(self.tankenImage[0])
 		
 	#Sets appropriate state and conditions when struck by enemy.
 	def setBlock(self, punchTime, damage, ammoGrabbed = None):
