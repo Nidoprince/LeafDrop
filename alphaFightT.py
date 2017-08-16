@@ -145,8 +145,9 @@ class Fighter(pygame.sprite.Sprite):
 						self.foe.state.setBlock(10,0)
 						self.state.attackLag = 15
 					else:
-						self.foe.state.setHit(20,20)
+						self.foe.state.setHit(20,self.state.attackDamage)
 						self.state.attackLag = 0
+					break
 	
 	#Returns all the rects of all the projects
 	def getProjRect(self):
@@ -212,6 +213,7 @@ class FightState():
 		self.health = 150 #Current Health
 		self.healthRed = 150 #Health that can be restored to, and is only temporarily gone.
 		self.healTimer = 0 #How long before you can start healing again.  
+		self.attackDamage = 0 #How much damage the current attack will deal.
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -647,10 +649,12 @@ class LeafState(FightState):
 					self.state = "cPunch1"
 					self.currentImage = self.cAttack1Image[0]
 					self.setBoxes(self.cAttack1Boxes[0])
+					self.attackDamage = 25
 				else: #When standing
 					self.state = "punch1"
 					self.currentImage = self.attack1Image[0]
 					self.setBoxes(self.attack1Boxes[0])
+					self.attackDamage = 30
 				self.frame = 0
 				self.attack()
 			elif("upD" in keypress): #Starts jumping
@@ -662,10 +666,12 @@ class LeafState(FightState):
 					self.state = "cKick1"
 					self.currentImage = self.cAttack2Image[0]
 					self.setBoxes(self.cAttack2Boxes[0])
+					self.attackDamage = 15
 				else: #Start kicking while standing
 					self.state = "kick1"
 					self.currentImage = self.attack2Image[0]
 					self.setBoxes(self.attack2Boxes[0])
+					self.attackDamage = 20
 				self.frame = 0
 				self.attack()
 			elif(self.holdingD): #Start or continue crouching
@@ -862,10 +868,12 @@ class LeafState(FightState):
 				self.state = "jPunch1"
 				self.frame2 = 0
 				self.attack()
+				self.attackDamage = 20
 			elif("kickD" in keypress and self.state == "jumping"): #Start kicking
 				self.state = "jKick1"
 				self.frame2 = 0
 				self.attack()
+				self.attackDamage = 25
 			elif(self.state == "jumpHit"): #Can't move while struck
 				self.orth = 0
 			elif(self.holdingR and not self.holdingL): #Go Right young Meowth
