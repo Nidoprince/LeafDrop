@@ -29,11 +29,12 @@ class Projectile(pygame.sprite.Sprite):
 
 
 class DamagingProjectile(Projectile):
-	def __init__(self, images, x, y, velocity, damage, stunTime):
+	def __init__(self, images, x, y, velocity, damage, stunTime, ammoType = None):
 		Projectile.__init__(self, images, x, y, velocity)
 		self.damage = damage
 		self.stunTime = stunTime
 		self.foe = None
+		self.ammoType = ammoType
 		
 	def setFoe(self, foe):
 		self.foe = foe
@@ -42,7 +43,7 @@ class DamagingProjectile(Projectile):
 		enemy = self.foe.getHitBoxes()
 		if(self.rect.collidelist(enemy)!=-1):
 			if(self.foe.state.isBlocking):
-				self.foe.state.setBlock(int(self.stunTime/2), 0)
+				self.foe.state.setBlock(int(self.stunTime/2), 0, self.ammoType)
 			else:
 				self.foe.state.setHit(self.stunTime, self.damage)
 			self.kill()
@@ -70,8 +71,8 @@ class Fighter(pygame.sprite.Sprite):
 		self.foe = foe
 		
 	#Adds a new projecile to the list
-	def addProjectile(self, images, x, y, velocity, damage, stun):
-		proj = DamagingProjectile(images, x+self.rect[0], y+self.rect[1], velocity, damage, stun)
+	def addProjectile(self, images, x, y, velocity, damage, stun, ammoType):
+		proj = DamagingProjectile(images, x+self.rect[0], y+self.rect[1], velocity, damage, stun, ammoType)
 		proj.setFoe(self.foe)
 		self.projectiles.add(proj)
 	
@@ -79,7 +80,7 @@ class Fighter(pygame.sprite.Sprite):
 	def checkProjectile(self):
 		if(self.state.projectile):
 			proj = self.state.projectile
-			self.addProjectile(proj[0],proj[1],proj[2],proj[3],proj[4],proj[5])
+			self.addProjectile(proj[0],proj[1],proj[2],proj[3],proj[4],proj[5],proj[6])
 			self.state.clearProjectile()
 		
 	#Called every frame to update whats happening.  Calls the State update method which does most of the heavy lifting.
@@ -214,6 +215,7 @@ class FightState():
 		self.healthRed = 150 #Health that can be restored to, and is only temporarily gone.
 		self.healTimer = 0 #How long before you can start healing again.  
 		self.attackDamage = 0 #How much damage the current attack will deal.
+		self.ammo = []
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -251,12 +253,12 @@ class FightState():
 	def clearProjectile(self):
 		self.projectile = None
 		
-	def setProjectile(self, images, x, y, vel, damage, stun):
+	def setProjectile(self, images, x, y, vel, damage, stun, ammoType = None):
 		if(not self.facingLeft):
 			r = images[0].get_rect()
 			x = 100-x-r.width
 			vel = (-vel[0],vel[1])
-		self.projectile = [images, x, y, vel, damage, stun]
+		self.projectile = [images, x, y, vel, damage, stun, ammoType]
 	
 	#Dummy function for a land/crouch/jump check
 	def getMetaState(self):
@@ -363,6 +365,7 @@ class LeafState(FightState):
 		self.jumpV = 0 #The vertical velocity of a jump
 		self.orth = 0 #How far a character is moving left or right while jumping
 		self.walkSpeed = 14 #Determines how many pixels each step covers
+		self.ammoFired = None #Determines type of ammo used
 		
 		#Initializes all the lists for different animations' images
 		self.hitImage = [0,0]
@@ -464,6 +467,8 @@ class LeafState(FightState):
 		for i in range(0,20):
 			self.defeat1Image[i] = pygame.image.load("LeafDefeat1/LeafDefeatFrm"+str(i+1)+".bmp").convert()
 			self.defeat1Image[i].set_colorkey(RED)
+			
+		for x in range(3): self.ammo.append(self.tankenImage[0])
 		
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
@@ -471,7 +476,6 @@ class LeafState(FightState):
 		self.moveRemember(keypress)
 		self.isBlocking = False
 		self.passiveHeal()
-	
 		#Deals with keyboard input that cares about being held down as opposed to just pressed.  
 		#Also deals with adjustment nessessary if step animations interupted, because it normally only
 		#adjusts the location after each full step cycle.  
@@ -569,7 +573,7 @@ class LeafState(FightState):
 			elif(self.frame == 6):
 				self.currentImage = self.sAttack1Image[2]
 				self.setBoxes(self.sAttack1Boxes[2])
-				self.setProjectile(self.tankenImage,30,35,(-7,0),20,15)
+				self.setProjectile(self.tankenImage,30,35,(-7,0),20,15,self.ammoFired)
 			elif(self.frame == 3):
 				self.currentImage = self.sAttack1Image[1]
 				self.setBoxes(self.sAttack1Boxes[1])
@@ -757,9 +761,14 @@ class LeafState(FightState):
 				combo = "hanotanken"
 		
 		if(combo == "hanotanken"):
-			self.state = "sAttack1"
-			self.currentImage = self.sAttack1Image[0]
-			self.currentBoxes = self.sAttack1Boxes[0]
+			if(len(self.ammo)>0):
+				self.state = "sAttack1"
+				self.currentImage = self.sAttack1Image[0]
+				self.currentBoxes = self.sAttack1Boxes[0]
+				self.ammoFired = self.ammo[0]
+				self.ammo = self.ammo[1:]
+			else:
+				combo = False
 		
 		return combo
 	
@@ -783,7 +792,7 @@ class LeafState(FightState):
 			self.health = 0
 		
 	#Sets appropriate state and conditions when struck by enemy.
-	def setBlock(self, punchTime, damage):
+	def setBlock(self, punchTime, damage, ammoGrabbed = None):
 		if(self.getMetaState() == "land"):
 			self.state = "blocking"
 			self.frame = 0
@@ -792,6 +801,8 @@ class LeafState(FightState):
 			self.frame = 0
 		self.punchTimer = punchTime
 		self.isHurting = False
+		if(ammoGrabbed and len(self.ammo)<5):
+			self.ammo.append(ammoGrabbed)
 		
 	#Tells if jumping, standing, or crouching
 	def getMetaState(self):
@@ -907,6 +918,10 @@ def drawHUD():
 	pygame.draw.rect(screen, BLACK, [width-202, 5, 152, 20], 3)
 	pygame.draw.rect(screen, BLACK, [5, 5, 40, 45], 3)
 	pygame.draw.rect(screen, BLACK, [width-45, 5, 40, 45], 3)
+	for x in range(len(player1.state.ammo)):
+		screen.blit(player1.state.ammo[x],(50+25*x,30))
+	for x in range(len(player2.state.ammo)):
+		screen.blit(player2.state.ammo[x],(width-66-25*x,30))
 	pygame.draw.rect(screen, BLACK, [50, 30, 15, 15], 2)
 	pygame.draw.rect(screen, BLACK, [75, 30, 15, 15], 2)
 	pygame.draw.rect(screen, BLACK, [100, 30, 15, 15], 2)
