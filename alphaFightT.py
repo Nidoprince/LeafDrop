@@ -349,7 +349,7 @@ class FightState():
 class LeafState(FightState):
 	#Sets all the variables.  Probably pretty bloated.  
 	def __init__(self,left):
-		FightState.__init__(self,"LeafBreath/LeafBrthFrm1",RED,left)
+		FightState.__init__(self,"Leaf/LeafBreath/LeafBrthFrm1",RED,left)
 		
 		#Used to tell if a particular keyboard key is currently held down or not.
 		self.holdingU = False
@@ -399,73 +399,73 @@ class LeafState(FightState):
 		#Sets all the single frame animation variables for sprites and hitboxes
 		self.idleImage = self.currentImage.copy() 
 		self.idleBoxes = self.getBoxes()
-		self.crouchImage = pygame.image.load("LeafCrouch.bmp").convert()
+		self.crouchImage = pygame.image.load("Leaf/LeafCrouch.bmp").convert()
 		self.crouchImage.set_colorkey(RED)
-		self.crouchBoxes = self.readBoxFile("LeafCrouch.txt")
-		self.crouchHitImage = pygame.image.load("LeafCrouchHit.bmp").convert()
+		self.crouchBoxes = self.readBoxFile("Leaf/LeafCrouch.txt")
+		self.crouchHitImage = pygame.image.load("Leaf/LeafCrouchHit.bmp").convert()
 		self.crouchHitImage.set_colorkey(RED)
-		self.crouchHitBoxes = self.readBoxFile("LeafCrouchHit.txt")
-		self.blockHiImage = pygame.image.load("LeafBlock.bmp").convert()
+		self.crouchHitBoxes = self.readBoxFile("Leaf/LeafCrouchHit.txt")
+		self.blockHiImage = pygame.image.load("Leaf/LeafBlock.bmp").convert()
 		self.blockHiImage.set_colorkey(RED)
-		self.blockHiBoxes = self.readBoxFile("LeafBlock.txt")
-		self.blockLowImage = pygame.image.load("LeafCrouchBlock.bmp").convert()
+		self.blockHiBoxes = self.readBoxFile("Leaf/LeafBlock.txt")
+		self.blockLowImage = pygame.image.load("Leaf/LeafCrouchBlock.bmp").convert()
 		self.blockLowImage.set_colorkey(RED)
-		self.blockLowBoxes = self.readBoxFile("LeafCrouchBlock.txt")
+		self.blockLowBoxes = self.readBoxFile("Leaf/LeafCrouchBlock.txt")
 		
 		
 		#And here is all the multiframe animation data setting
 		for i in range(0,2):
-			self.hitImage[i] = pygame.image.load("LeafHit/LeafHitFrm"+str(i+1)+".bmp").convert()
+			self.hitImage[i] = pygame.image.load("Leaf/LeafHit/LeafHitFrm"+str(i+1)+".bmp").convert()
 			self.hitImage[i].set_colorkey(RED)
-			self.hitBox[i] = self.readBoxFile("LeafHit/LeafHitFrm"+str(i+1)+".txt")
+			self.hitBox[i] = self.readBoxFile("Leaf/LeafHit/LeafHitFrm"+str(i+1)+".txt")
 		for i in range(0,5):
-			self.attack1Image[i] = pygame.image.load("LeafAttack1/LeafAtk1Frm"+str(i+1)+".bmp").convert()
+			self.attack1Image[i] = pygame.image.load("Leaf/LeafAttack1/LeafAtk1Frm"+str(i+1)+".bmp").convert()
 			self.attack1Image[i].set_colorkey(RED)
-			self.attack1Boxes[i] = self.readBoxFile("LeafAttack1/LeafAtk1Frm"+str(i+1)+".txt")
+			self.attack1Boxes[i] = self.readBoxFile("Leaf/LeafAttack1/LeafAtk1Frm"+str(i+1)+".txt")
 		for i in range(0,2):
-			self.attack2Image[i] = pygame.image.load("LeafAttack2/LeafAtk2Frm"+str(i+1)+".bmp").convert()
+			self.attack2Image[i] = pygame.image.load("Leaf/LeafAttack2/LeafAtk2Frm"+str(i+1)+".bmp").convert()
 			self.attack2Image[i].set_colorkey(RED)
-			self.attack2Boxes[i] = self.readBoxFile("LeafAttack2/LeafAtk2Frm"+str(i+1)+".txt")
+			self.attack2Boxes[i] = self.readBoxFile("Leaf/LeafAttack2/LeafAtk2Frm"+str(i+1)+".txt")
 		for i in range(0,5):
-			self.cAttack1Image[i] = pygame.image.load("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".bmp").convert()
+			self.cAttack1Image[i] = pygame.image.load("Leaf/LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".bmp").convert()
 			self.cAttack1Image[i].set_colorkey(RED)
-			self.cAttack1Boxes[i] = self.readBoxFile("LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".txt")
+			self.cAttack1Boxes[i] = self.readBoxFile("Leaf/LeafCrouchAttack1/LeafCrchAtk1Frm"+str(i+1)+".txt")
 		for i in range(0,2):
-			self.cAttack2Image[i] = pygame.image.load("LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".bmp").convert()
+			self.cAttack2Image[i] = pygame.image.load("Leaf/LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".bmp").convert()
 			self.cAttack2Image[i].set_colorkey(RED)
-			self.cAttack2Boxes[i] = self.readBoxFile("LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".txt")
+			self.cAttack2Boxes[i] = self.readBoxFile("Leaf/LeafCrouchAttack2/LeafCrchAtk2Frm"+str(i+1)+".txt")
 		for i in range(0,4):
-			self.stepImage[i] = pygame.image.load("LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
+			self.stepImage[i] = pygame.image.load("Leaf/LeafStep/LeafStpFrm"+str(i+1)+".bmp").convert()
 			self.stepImage[i].set_colorkey(RED)
-			self.stepBoxes[i] = self.readBoxFile("LeafStep/LeafStpFrm"+str(i+1)+".txt")
+			self.stepBoxes[i] = self.readBoxFile("Leaf/LeafStep/LeafStpFrm"+str(i+1)+".txt")
 		for i in range(0,3):
-			self.breathImage[i] = pygame.image.load("LeafBreath/LeafBrthFrm"+str(i+1)+".bmp").convert()
+			self.breathImage[i] = pygame.image.load("Leaf/LeafBreath/LeafBrthFrm"+str(i+1)+".bmp").convert()
 			self.breathImage[i].set_colorkey(RED)
-			self.breathBoxes[i] = self.readBoxFile("LeafBreath/LeafBrthFrm"+str(i+1)+".txt")
+			self.breathBoxes[i] = self.readBoxFile("Leaf/LeafBreath/LeafBrthFrm"+str(i+1)+".txt")
 		for i in range(0,2):
-			self.jumpImage[i] = pygame.image.load("LeafJump/LeafJmpFrm"+str(i+1)+".bmp").convert()
+			self.jumpImage[i] = pygame.image.load("Leaf/LeafJump/LeafJmpFrm"+str(i+1)+".bmp").convert()
 			self.jumpImage[i].set_colorkey(RED)
-			self.jumpBoxes[i] = self.readBoxFile("LeafJump/LeafJmpFrm"+str(i+1)+".txt")
+			self.jumpBoxes[i] = self.readBoxFile("Leaf/LeafJump/LeafJmpFrm"+str(i+1)+".txt")
 		for i in range(0,4):
-			self.jAttack1Image[i] = pygame.image.load("LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".bmp").convert()
+			self.jAttack1Image[i] = pygame.image.load("Leaf/LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".bmp").convert()
 			self.jAttack1Image[i].set_colorkey(RED)
-			self.jAttack1Boxes[i] = self.readBoxFile("LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".txt")
+			self.jAttack1Boxes[i] = self.readBoxFile("Leaf/LeafJumpAttack1/LeafJmpAtk1Frm"+str(i+1)+".txt")
 		for i in range(0,2):
-			self.jAttack2Image[i] = pygame.image.load("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".bmp").convert()
+			self.jAttack2Image[i] = pygame.image.load("Leaf/LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".bmp").convert()
 			self.jAttack2Image[i].set_colorkey(RED)
-			self.jAttack2Boxes[i] = self.readBoxFile("LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".txt")
+			self.jAttack2Boxes[i] = self.readBoxFile("Leaf/LeafJumpAttack2/LeafJmpAtk2Frm"+str(i+1)+".txt")
 		for i in range(0,3):
-			self.sAttack1Image[i] = pygame.image.load("LeafSpecial1/LeafHtkFrm"+str(i+1)+".bmp").convert()
+			self.sAttack1Image[i] = pygame.image.load("Leaf/LeafSpecial1/LeafHtkFrm"+str(i+1)+".bmp").convert()
 			self.sAttack1Image[i].set_colorkey(RED)
-			self.sAttack1Boxes[i] = self.readBoxFile("LeafSpecial1/LeafHtkFrm"+str(i+1)+".txt")
+			self.sAttack1Boxes[i] = self.readBoxFile("Leaf/LeafSpecial1/LeafHtkFrm"+str(i+1)+".txt")
 		for i in range(0,3):
-			self.tankenImage[i] = pygame.image.load("HaNoTanken/HntknFrm"+str(i+1)+".bmp").convert()
+			self.tankenImage[i] = pygame.image.load("Leaf/HaNoTanken/HntknFrm"+str(i+1)+".bmp").convert()
 			self.tankenImage[i].set_colorkey(RED)
 		for i in range(0,4):
-			self.victory1Image[i] = pygame.image.load("LeafVictory1/LeafVctFrm"+str(i+1)+".bmp").convert()
+			self.victory1Image[i] = pygame.image.load("Leaf/LeafVictory1/LeafVctFrm"+str(i+1)+".bmp").convert()
 			self.victory1Image[i].set_colorkey(RED)
 		for i in range(0,20):
-			self.defeat1Image[i] = pygame.image.load("LeafDefeat1/LeafDefeatFrm"+str(i+1)+".bmp").convert()
+			self.defeat1Image[i] = pygame.image.load("Leaf/LeafDefeat1/LeafDefeatFrm"+str(i+1)+".bmp").convert()
 			self.defeat1Image[i].set_colorkey(RED)
 			
 		for x in range(3): self.ammo.append(self.tankenImage[0])
