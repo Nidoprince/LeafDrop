@@ -122,10 +122,8 @@ class Fighter(pygame.sprite.Sprite):
 	
 	def defeatCheck(self):
 		if(self.state.health == 0 and not self.gameOver):
-			self.state.state = "defeat"
-			self.state.frame = 0
-			self.foe.state.state = "victory"
-			self.foe.state.frame = 0
+			self.state.setDefeat()
+			self.foe.state.setVictory()
 			self.gameOver = True
 	
 	
@@ -216,6 +214,7 @@ class FightState():
 		self.healTimer = 0 #How long before you can start healing again.  
 		self.attackDamage = 0 #How much damage the current attack will deal.
 		self.ammo = []
+		self.victorious = False
 		
 	def getImage(self):
 		if(self.facingLeft):
@@ -260,6 +259,12 @@ class FightState():
 			vel = (-vel[0],vel[1])
 		self.projectile = [images, x, y, vel, damage, stun, ammoType]
 	
+	def setDefeat(self):
+		self.state = "defeat"
+		
+	def setVictory(self):
+		self.state = "victory"
+		
 	#Dummy function for a land/crouch/jump check
 	def getMetaState(self):
 		return "land"
@@ -574,6 +579,8 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.idleImage
 				self.setBoxes(self.idleBoxes)
+				if(self.victorious):
+					self.state = "victory"
 			elif(self.frame == 6):
 				self.currentImage = self.sAttack1Image[2]
 				self.setBoxes(self.sAttack1Boxes[2])
@@ -588,6 +595,8 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.idleImage
 				self.setBoxes(self.idleBoxes)
+				if(self.victorious):
+					self.state = "victory"
 			elif(self.frame == 7):
 				self.isHurting = False
 			elif(self.frame == 6):
@@ -609,6 +618,8 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.idleImage
 				self.setBoxes(self.idleBoxes)
+				if(self.victorious):
+					self.state = "victory"
 			elif(self.frame == 5):
 				self.isHurting = False
 			elif(self.frame == 3):
@@ -621,6 +632,8 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
+				if(self.victorious):
+					self.state = "victory"
 			elif(self.frame == 6):
 				self.isHurting = False
 			elif(self.frame == 5):
@@ -642,12 +655,14 @@ class LeafState(FightState):
 				self.frame = 0
 				self.currentImage = self.crouchImage
 				self.setBoxes(self.crouchBoxes)
+				if(self.victorious):
+					self.state = "victory"
 			elif(self.frame == 4):
 				self.isHurting = False
 			elif(self.frame == 2):
 				self.currentImage = self.cAttack2Image[1]
 				self.setBoxes(self.cAttack2Boxes[1])
-		elif(self.state in["jumping","jPunch1","jKick1","jumpHit"]): #Jumps to special jumping function.  Haha
+		elif(self.getMetaState() == "jump"): #Jumps to special jumping function.  Haha
 			self.nextJump(keypress)
 		elif(self.state in ["idle", "crouch", "leftForw", "leftBack", "rightForw", "rightBack"]): #Logic for passive states that you can initiate attacks from.
 			if("punchD" in keypress): #Starts basic sword swing.
@@ -814,10 +829,29 @@ class LeafState(FightState):
 	def getMetaState(self):
 		if(self.state in ["crouch","cPunch1","cKick1","crouchHit","crouchBlocking"]):
 			return "crouch"
-		elif(self.state in ["jumping","jumpHit","jKick1","jPunch1"]):
+		elif(self.state in ["jumping","jumpHit","jKick1","jPunch1","jumpDefeat"]):
 			return "jump"
 		else:
 			return "land"
+	
+	#Checks if currently attacking
+	def isAttacking(self):
+		return self.state in ["punch1","kick1","jPunch1","jKick1","cPunch1","cKick1","sAttack1"]
+	
+	def setDefeat(self):
+		if(self.getMetaState() == "jump"):
+			self.state = "jumpDefeat"
+			self.frame2 = 0
+		else:
+			self.state = "defeat"
+			self.frame = 0
+		
+	def setVictory(self):
+		self.victorious = True
+		if(not self.isAttacking()):
+			self.state = "victory"
+			self.frame = 0
+		
 	
 	#Deals with animations when in the process of jumping
 	def nextJump(self, keypress):
@@ -826,12 +860,21 @@ class LeafState(FightState):
 			if(self.state=="jumpHit"):
 				self.state = "hit"
 				self.frame = self.frame2
+			elif(self.state=="jumpDefeat"):
+				self.state = "defeat"
+				self.frame = self.frame2
+			elif(self.victorious):
+				self.state = "victory"
+				self.frame = 0
 			else:
 				self.state = "idle"
 				self.frame = 0
 		elif(self.frame<5 or self.frame>=26): #Deals with first starting or ending a jump
 			if(self.state=="jumpHit"):
 				self.state = "hit"
+				self.frame = self.frame2
+			elif(self.state=="jumpDefeat"):
+				self.state = "defeat"
 				self.frame = self.frame2
 			else:
 				self.currentImage = self.jumpImage[0]
@@ -840,8 +883,16 @@ class LeafState(FightState):
 			self.frame2 = 0
 			self.orth = 0
 		else: #Deals with the actual "in the air" part of jumping
-			if(self.state == "jumpHit"):
-				self.frame2+=1
+			if(self.state == "jumpDefeat"):
+				self.frame2 += 0.3
+				if(self.frame2 > 30):
+					self.currentImage = self.defeat1Image[19]
+				elif(self.frame2 > 18):
+					self.currentImage = self.defeat1Image[18]
+				else:
+					self.currentImage = self.defeat1Image[int(self.frame2) - 1]
+			elif(self.state == "jumpHit"):
+				self.frame2 += 1
 				if(self.frame2 == self.punchTimer):
 					self.state = "jumping"
 					self.currentImage = self.jumpImage[1]
@@ -891,7 +942,7 @@ class LeafState(FightState):
 				self.frame2 = 0
 				self.attack()
 				self.attackDamage = 25
-			elif(self.state == "jumpHit"): #Can't move while struck
+			elif(self.state in ["jumpHit", "jumpDefeat"]): #Can't move while struck
 				self.orth = 0
 			elif(self.holdingR and not self.holdingL): #Go Right young Meowth
 				self.orth = 3.5
@@ -981,7 +1032,7 @@ class FallState(LeafState):
 		for x in range(3): self.ammo.append(self.tankenImage[0])
 	
 			
-def drawHUD():
+def drawHUD(player1, player2):
 	p1Status = GREEN
 	p2Status = GREEN
 	if(player1.state.state in ["hit","crouchHit","jumpHit"]):
@@ -1019,7 +1070,125 @@ def drawHUD():
 	pygame.draw.rect(screen, BLACK, [width-141, 30, 15, 15], 2)
 	pygame.draw.rect(screen, BLACK, [width-166, 30, 15, 15], 2)
 	
-	
+def fightLoop(play1, play2, stageIn):
+	stage = stageIn
+	player1 = play1
+	player2 = play2
+
+	player1.setFoe(player2)
+	player2.setFoe(player1)
+
+	#Toggles for animation of various hit boxes
+	showCollisionBox = False
+	showHitBox = False
+	showHurtBox = False
+
+	while 1: #Main game loop
+		clock.tick(frameRate) #Makes sure it runs at appropriate frame rate
+		keypressA = [] #Holder for player 1's input
+		keypressB = [] #Holder for player 2's input
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT: sys.exit()
+			if event.type == pygame.KEYDOWN: #Buttons pressed
+				if event.key == pygame.K_LEFT:
+					keypressB.append("leftD")
+				if event.key == pygame.K_RIGHT:
+					keypressB.append("rightD")
+				if event.key == pygame.K_UP:
+					keypressB.append("upD")
+				if event.key == pygame.K_COMMA:
+					keypressB.append("punchD")
+				if event.key == pygame.K_PERIOD:
+					keypressB.append("kickD")
+				if event.key == pygame.K_DOWN:
+					keypressB.append("downD")
+				if event.key == pygame.K_a:
+					keypressA.append("leftD")
+				if event.key == pygame.K_d:
+					keypressA.append("rightD")
+				if event.key == pygame.K_w:
+					keypressA.append("upD")
+				if event.key == pygame.K_v:
+					keypressA.append("punchD")
+				if event.key == pygame.K_b:
+					keypressA.append("kickD")
+				if event.key == pygame.K_s:
+					keypressA.append("downD")
+				if event.key == pygame.K_i:
+					showCollisionBox = not showCollisionBox
+				if event.key == pygame.K_o:
+					showHitBox = not showHitBox
+				if event.key == pygame.K_p:
+					showHurtBox = not showHurtBox
+				if event.key == pygame.K_SPACE:
+					if(player1.gameOver or player2.gameOver):
+						return True
+			if event.type == pygame.KEYUP: #Buttons released
+				if event.key == pygame.K_LEFT:
+					keypressB.append("leftU")
+				if event.key == pygame.K_RIGHT:
+					keypressB.append("rightU")
+				if event.key == pygame.K_UP:
+					keypressB.append("upU")
+				if event.key == pygame.K_COMMA:
+					keypressB.append("punchU")
+				if event.key == pygame.K_PERIOD:
+					keypressB.append("kickU")
+				if event.key == pygame.K_DOWN:
+					keypressB.append("downU")
+				if event.key == pygame.K_a:
+					keypressA.append("leftU")
+				if event.key == pygame.K_d:
+					keypressA.append("rightU")
+				if event.key == pygame.K_w:
+					keypressA.append("upU")
+				if event.key == pygame.K_v:
+					keypressA.append("punchU")
+				if event.key == pygame.K_b:
+					keypressA.append("kickU")
+				if event.key == pygame.K_s:
+					keypressA.append("downU")
+				
+		#Run the logic for the two characters
+		player1.update(keypressA) 
+		player2.update(keypressB)
+		
+		#Draw stuff on the screen	
+		screen.blit(stage, (0,0))
+		screen.blit(player1.image,player1.rect)
+		screen.blit(player2.image,player2.rect)
+		for x in player1.projectiles:
+			screen.blit(x.image,x.rect)
+		for y in player2.projectiles:
+			screen.blit(y.image,y.rect)
+		if(showCollisionBox):
+			s = pygame.Surface((600,400))
+			s.set_alpha(128)
+			s.fill(YELLOW)
+			screen.blit(s,player1.getStopBox(),player1.getStopBox())
+			screen.blit(s,player2.getStopBox(),player2.getStopBox())
+		if(showHitBox):
+			s = pygame.Surface((600,400))
+			s.set_alpha(128)
+			s.fill(GREEN)
+			for a in player1.getHitBoxes():
+				screen.blit(s,a,a)
+			for a in player2.getHitBoxes():
+				screen.blit(s,a,a)
+		if(showHurtBox):
+			s = pygame.Surface((600,400))
+			s.set_alpha(128)
+			s.fill(RED)
+			for a in player1.getHurtBoxes():
+				screen.blit(s,a,a)
+			for a in player2.getHurtBoxes():
+				screen.blit(s,a,a)
+		drawHUD(player1, player2)
+		if(player1.gameOver or player2.gameOver):
+			if(not 'continueText' in locals()):
+				continueText = text.render("Game Over.  Press Space to Restart",False,BLACK)
+			screen.blit(continueText, (200, 100))
+		pygame.display.flip()	
 		
 
 size = width, height = 600, 300 #Determines the size of the screen.
@@ -1031,120 +1200,14 @@ RED =   (255,   0,   0)
 YELLOW =(255, 255,   0)
 PURPLE =(178,   0, 255)
 
+pygame.init()
+text = pygame.font.Font(None, 20)
+
 #Initialization stuff
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
-stage = forestStage
-leaf = Fighter(LeafState(False),200,170) # Makes fighter1
-clone = Fighter(FallState(True),400,170) # Makes fighter2
-player1 = leaf
-player2 = clone
-
-player1.setFoe(player2)
-player2.setFoe(player1)
-
-#Toggles for animation of various hit boxes
-showCollisionBox = False
-showHitBox = False
-showHurtBox = False
-
-while 1: #Main game loop
-	clock.tick(frameRate) #Makes sure it runs at appropriate frame rate
-	keypressA = [] #Holder for player 1's input
-	keypressB = [] #Holder for player 2's input
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT: sys.exit()
-		if event.type == pygame.KEYDOWN: #Buttons pressed
-			if event.key == pygame.K_LEFT:
-				keypressB.append("leftD")
-			if event.key == pygame.K_RIGHT:
-				keypressB.append("rightD")
-			if event.key == pygame.K_UP:
-				keypressB.append("upD")
-			if event.key == pygame.K_COMMA:
-				keypressB.append("punchD")
-			if event.key == pygame.K_PERIOD:
-				keypressB.append("kickD")
-			if event.key == pygame.K_DOWN:
-				keypressB.append("downD")
-			if event.key == pygame.K_a:
-				keypressA.append("leftD")
-			if event.key == pygame.K_d:
-				keypressA.append("rightD")
-			if event.key == pygame.K_w:
-				keypressA.append("upD")
-			if event.key == pygame.K_v:
-				keypressA.append("punchD")
-			if event.key == pygame.K_b:
-				keypressA.append("kickD")
-			if event.key == pygame.K_s:
-				keypressA.append("downD")
-			if event.key == pygame.K_i:
-				showCollisionBox = not showCollisionBox
-			if event.key == pygame.K_o:
-				showHitBox = not showHitBox
-			if event.key == pygame.K_p:
-				showHurtBox = not showHurtBox
-		if event.type == pygame.KEYUP: #Buttons released
-			if event.key == pygame.K_LEFT:
-				keypressB.append("leftU")
-			if event.key == pygame.K_RIGHT:
-				keypressB.append("rightU")
-			if event.key == pygame.K_UP:
-				keypressB.append("upU")
-			if event.key == pygame.K_COMMA:
-				keypressB.append("punchU")
-			if event.key == pygame.K_PERIOD:
-				keypressB.append("kickU")
-			if event.key == pygame.K_DOWN:
-				keypressB.append("downU")
-			if event.key == pygame.K_a:
-				keypressA.append("leftU")
-			if event.key == pygame.K_d:
-				keypressA.append("rightU")
-			if event.key == pygame.K_w:
-				keypressA.append("upU")
-			if event.key == pygame.K_v:
-				keypressA.append("punchU")
-			if event.key == pygame.K_b:
-				keypressA.append("kickU")
-			if event.key == pygame.K_s:
-				keypressA.append("downU")
-			
-	#Run the logic for the two characters
-	player1.update(keypressA) 
-	player2.update(keypressB)
-	
-	#Draw stuff on the screen	
-	screen.blit(stage, (0,0))
-	screen.blit(player1.image,player1.rect)
-	screen.blit(player2.image,player2.rect)
-	for x in player1.projectiles:
-		screen.blit(x.image,x.rect)
-	for y in player2.projectiles:
-		screen.blit(y.image,y.rect)
-	if(showCollisionBox):
-		s = pygame.Surface((600,400))
-		s.set_alpha(128)
-		s.fill(YELLOW)
-		screen.blit(s,player1.getStopBox(),player1.getStopBox())
-		screen.blit(s,player2.getStopBox(),player2.getStopBox())
-	if(showHitBox):
-		s = pygame.Surface((600,400))
-		s.set_alpha(128)
-		s.fill(GREEN)
-		for a in player1.getHitBoxes():
-			screen.blit(s,a,a)
-		for a in player2.getHitBoxes():
-			screen.blit(s,a,a)
-	if(showHurtBox):
-		s = pygame.Surface((600,400))
-		s.set_alpha(128)
-		s.fill(RED)
-		for a in player1.getHurtBoxes():
-			screen.blit(s,a,a)
-		for a in player2.getHurtBoxes():
-			screen.blit(s,a,a)
-	drawHUD()
-	pygame.display.flip()
+while 1:
+	leaf = Fighter(LeafState(False),100,170) # Makes fighter1
+	clone = Fighter(FallState(True),400,170) # Makes fighter2
+	fightLoop(leaf, clone, forestStage)
