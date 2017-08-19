@@ -20,6 +20,9 @@ class FallState(LeafState):
 		self.blockLowImage = pygame.image.load("Fall/FallCrouchBlock.bmp").convert()
 		self.blockLowImage.set_colorkey(PURPLE)
 		self.blockLowBoxes = self.readBoxFile("Fall/FallCrouchBlock.txt")
+		self.ammoImage = pygame.image.load("Fall/FallAmmo.bmp").convert()
+		self.ammoImage.set_colorkey(PURPLE)
+		for x in range(3): self.ammo.append(self.ammoImage)
 		
 		
 		#And here is all the multiframe animation data setting
@@ -79,5 +82,3 @@ class FallState(LeafState):
 		
 		self.idleImage = self.breathImage[0] 
 		self.idleBoxes = self.breathBoxes[0]	
-		self.ammoImage = self.tankenImage[0]
-		for x in range(3): self.ammo.append(self.ammoImage)

@@ -31,16 +31,9 @@ def drawHUD(player1, player2):
 		screen.blit(player1.state.ammo[x],(50+25*x,30))
 	for x in range(len(player2.state.ammo)):
 		screen.blit(player2.state.ammo[x],(width-66-25*x,30))
-	pygame.draw.rect(screen, BLACK, [50, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [75, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [100, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [125, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [150, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [width-66, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [width-91, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [width-116, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [width-141, 30, 15, 15], 2)
-	pygame.draw.rect(screen, BLACK, [width-166, 30, 15, 15], 2)
+	for x in range(5):
+		pygame.draw.rect(screen, BLACK, [50+25*x, 30, 15, 15], 2)
+		pygame.draw.rect(screen, BLACK, [width-66-25*x, 30, 15, 15], 2)
 	
 def fightLoop(play1, play2, stageIn):
 	stage = stageIn

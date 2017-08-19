@@ -73,7 +73,9 @@ class LeafState(FightState):
 		self.blockLowImage = pygame.image.load("Leaf/LeafCrouchBlock.bmp").convert()
 		self.blockLowImage.set_colorkey(RED)
 		self.blockLowBoxes = self.readBoxFile("Leaf/LeafCrouchBlock.txt")
-		
+		self.ammoImage = pygame.image.load("Leaf/LeafAmmo.bmp").convert()
+		self.ammoImage.set_colorkey(RED)
+		for x in range(3): self.ammo.append(self.ammoImage)
 		
 		#And here is all the multiframe animation data setting
 		for i in range(0,2):
@@ -130,8 +132,6 @@ class LeafState(FightState):
 			self.defeat1Image[i] = pygame.image.load("Leaf/LeafDefeat1/LeafDefeatFrm"+str(i+1)+".bmp").convert()
 			self.defeat1Image[i].set_colorkey(RED)
 		
-		self.ammoImage = self.tankenImage[0]
-		for x in range(3): self.ammo.append(self.ammoImage)
 		
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
@@ -464,7 +464,7 @@ class LeafState(FightState):
 		if(self.health<0):
 			self.health = 0
 		if(len(self.ammo)<2):
-			self.ammo.append(self.tankenImage[0])
+			self.ammo.append(self.ammoImage)
 		
 	#Sets appropriate state and conditions when struck by enemy.
 	def setBlock(self, punchTime, damage, ammoGrabbed = None):
