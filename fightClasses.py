@@ -41,7 +41,10 @@ class DamagingProjectile(Projectile):
 	def checkHit(self):
 		enemy = self.foe.getHitBoxes()
 		if(self.rect.collidelist(enemy)!=-1):
-			if(self.foe.state.isBlocking):
+			if((self.foe.state.facingLeft and self.rect.center > self.foe.rect.center) or (not self.foe.state.facingLeft and self.rect.center < self.foe.rect.center)):
+				self.foe.state.facingLeft = not self.foe.state.facingLeft
+				self.foe.state.setHit(self.stunTime, self.damage)
+			elif(self.foe.state.isBlocking):
 				self.foe.state.setBlock(int(self.stunTime/2), 0, self.ammoType)
 			else:
 				self.foe.state.setHit(self.stunTime, self.damage)
@@ -138,7 +141,11 @@ class Fighter(pygame.sprite.Sprite):
 			for x in me:
 				if(x.collidelist(enemy)!=-1):
 					self.state.stopHurting()
-					if(self.foe.state.isBlocking and ((self.state.getMetaState()!="jump" and self.foe.state.getMetaState()=="crouch") or (self.state.getMetaState()!="crouch" and self.foe.state.getMetaState()=="land"))):
+					if(self.state.facingLeft  == self.foe.state.facingLeft):
+						self.foe.state.setHit(20,self.state.attackDamage)
+						self.state.attackLag = 0
+						self.foe.state.facingLeft = not self.foe.state.facingLeft
+					elif(self.foe.state.isBlocking and ((self.state.getMetaState()!="jump" and self.foe.state.getMetaState()=="crouch") or (self.state.getMetaState()!="crouch" and self.foe.state.getMetaState()=="land"))):
 						self.foe.state.setBlock(10,0)
 						self.state.attackLag = 15
 					else:
