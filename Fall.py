@@ -79,4 +79,5 @@ class FallState(LeafState):
 		
 		self.idleImage = self.breathImage[0] 
 		self.idleBoxes = self.breathBoxes[0]	
-		for x in range(3): self.ammo.append(self.tankenImage[0])
+		self.ammoImage = self.tankenImage[0]
+		for x in range(3): self.ammo.append(self.ammoImage)

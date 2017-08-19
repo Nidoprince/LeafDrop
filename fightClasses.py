@@ -73,7 +73,10 @@ class Fighter(pygame.sprite.Sprite):
 		
 	#Adds a new projecile to the list
 	def addProjectile(self, images, x, y, velocity, damage, stun, ammoType):
-		proj = DamagingProjectile(images, x+self.rect[0], y+self.rect[1], velocity, damage, stun, ammoType)
+		if(ammoType == self.state.ammoImage):
+			proj = DamagingProjectile(images, x+self.rect[0], y+self.rect[1], velocity, damage, stun, ammoType)
+		else:
+			proj = DamagingProjectile(self.foe.state.tankenImage, x+self.rect[0], y+self.rect[1], velocity, damage, stun, ammoType)
 		proj.setFoe(self.foe)
 		self.projectiles.add(proj)
 	
@@ -220,6 +223,7 @@ class FightState():
 		self.attackDamage = 0 #How much damage the current attack will deal.
 		self.ammo = []
 		self.victorious = False
+		self.ammoImage = None
 		
 	def getImage(self):
 		if(self.facingLeft):

@@ -129,8 +129,9 @@ class LeafState(FightState):
 		for i in range(0,20):
 			self.defeat1Image[i] = pygame.image.load("Leaf/LeafDefeat1/LeafDefeatFrm"+str(i+1)+".bmp").convert()
 			self.defeat1Image[i].set_colorkey(RED)
-			
-		for x in range(3): self.ammo.append(self.tankenImage[0])
+		
+		self.ammoImage = self.tankenImage[0]
+		for x in range(3): self.ammo.append(self.ammoImage)
 		
 	#The super bloated mega method. This runs each frame to update everything and its brother, depending on state, and keyboard input.
 	def next(self, keypress):
