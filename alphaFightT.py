@@ -6,15 +6,21 @@ from Fall import FallState
 			
 def drawHUD(player1, player2):
 	p1Status = GREEN
+	p1Image = player1.state.faceImage
 	p2Status = GREEN
+	p2Image = player2.state.faceImage
 	if(player1.state.state in ["hit","crouchHit","jumpHit"]):
 		p1Status = RED
+		p1Image = player1.state.faceHitImage
 	if(player1.state.state in ["blocking","crouchBlocking"]):
 		p1Status = BLUE
+		p1Image = player1.state.faceBlockImage
 	if(player2.state.state in ["hit","crouchHit","jumpHit"]):
 		p2Status = RED
+		p2Image = player2.state.faceHitImage
 	if(player2.state.state in ["blocking","crouchBlocking"]):
 		p2Status = BLUE
+		p2Image = player2.state.faceBlockImage
 	pygame.draw.rect(screen, BLUE, [50, 5, 150, 20])
 	pygame.draw.rect(screen, BLUE, [width-200, 5, 150, 20])
 	pygame.draw.rect(screen, RED, [50, 5, player1.state.healthRed, 20])
@@ -22,7 +28,9 @@ def drawHUD(player1, player2):
 	pygame.draw.rect(screen, GREEN, [50, 5, player1.state.health, 20])
 	pygame.draw.rect(screen, GREEN, [width-50-player2.state.health, 5, player2.state.health, 20])
 	pygame.draw.rect(screen, p1Status, [5, 5, 40, 45])
+	screen.blit(pygame.transform.flip(p1Image, True, False),(5,5))
 	pygame.draw.rect(screen, p2Status, [width-45, 5, 40, 45])
+	screen.blit(p2Image,(width-45,5))
 	pygame.draw.rect(screen, BLACK, [49, 5, 152, 20], 3)
 	pygame.draw.rect(screen, BLACK, [width-202, 5, 152, 20], 3)
 	pygame.draw.rect(screen, BLACK, [5, 5, 40, 45], 3)

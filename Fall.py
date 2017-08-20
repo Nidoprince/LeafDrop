@@ -23,6 +23,12 @@ class FallState(LeafState):
 		self.ammoImage = pygame.image.load("Fall/FallAmmo.bmp").convert()
 		self.ammoImage.set_colorkey(PURPLE)
 		for x in range(3): self.ammo.append(self.ammoImage)
+		self.faceImage = pygame.image.load("Fall/FallFace.bmp")
+		self.faceImage.set_colorkey(PURPLE)
+		self.faceHitImage = pygame.image.load("Fall/FallFaceHit.bmp")
+		self.faceHitImage.set_colorkey(PURPLE)
+		self.faceBlockImage = pygame.image.load("Fall/FallFaceBlock.bmp")
+		self.faceBlockImage.set_colorkey(PURPLE)
 		
 		
 		#And here is all the multiframe animation data setting
