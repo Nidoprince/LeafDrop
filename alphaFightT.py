@@ -43,7 +43,7 @@ def drawHUD(player1, player2):
 		pygame.draw.rect(screen, BLACK, [50+25*x, 30, 15, 15], 2)
 		pygame.draw.rect(screen, BLACK, [width-66-25*x, 30, 15, 15], 2)
 	
-def fightLoop(play1, play2, stageIn):
+def fightLoop(play1, play2, stageIn, music):
 	stage = stageIn
 	player1 = play1
 	player2 = play2
@@ -55,6 +55,10 @@ def fightLoop(play1, play2, stageIn):
 	showCollisionBox = False
 	showHitBox = False
 	showHurtBox = False
+	
+	#Starts background music
+	pygame.mixer.music.load(music)
+	pygame.mixer.music.play(-1)
 
 	while 1: #Main game loop
 		clock.tick(frameRate) #Makes sure it runs at appropriate frame rate
@@ -163,6 +167,7 @@ def fightLoop(play1, play2, stageIn):
 			screen.blit(continueText, (200, 100))
 		pygame.display.flip()	
 
+pygame.mixer.pre_init(44100,16,2,4096)
 pygame.init()
 text = pygame.font.Font(None, 20)
 
@@ -170,7 +175,8 @@ text = pygame.font.Font(None, 20)
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
+backgroundMusic = "ForestSong.ogg"
 while 1:
 	leaf = Fighter(LeafState(False),100,170) # Makes fighter1
 	clone = Fighter(FallState(True),400,170) # Makes fighter2
-	fightLoop(leaf, clone, forestStage)
+	fightLoop(leaf, clone, forestStage, backgroundMusic)
