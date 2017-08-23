@@ -167,6 +167,33 @@ def fightLoop(play1, play2, stageIn, music):
 			screen.blit(continueText, (200, 100))
 		pygame.display.flip()	
 
+def menuLoop():
+	spacePressed = False
+	menuScroll = pygame.image.load("MenuScroll.bmp").convert()
+	counter = 0
+	while not spacePressed:
+		clock.tick(frameRate)
+		counter = (counter + 1)%600
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT: sys.exit()
+			if event.type == pygame.KEYDOWN: #Buttons pressed
+				if event.key == pygame.K_SPACE:
+					spacePressed = True
+		screen.blit(menuScroll,(0,0),(counter,counter,600,300))
+		screen.blit(menuScroll,(600-counter,0),(0,counter,600,300))
+		if(counter>=300):
+			screen.blit(menuScroll,(0,600-counter),(counter,0,600,300))
+			screen.blit(menuScroll,(600-counter,600-counter),(0,0,600,300))
+		pygame.display.flip()
+		
+		
+	forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
+	backgroundMusic = "ForestSong.ogg"
+	leaf = Fighter(LeafState(False),100,170) # Makes fighter1
+	clone = Fighter(FallState(True),400,170) # Makes fighter2
+	return leaf, clone, forestStage, backgroundMusic
+		
+		
 pygame.mixer.pre_init(44100,16,2,4096)
 pygame.init()
 text = pygame.font.Font(None, 20)
@@ -174,9 +201,8 @@ text = pygame.font.Font(None, 20)
 #Initialization stuff
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
-forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
-backgroundMusic = "ForestSong.ogg"
+
 while 1:
-	leaf = Fighter(LeafState(False),100,170) # Makes fighter1
-	clone = Fighter(FallState(True),400,170) # Makes fighter2
+	leaf, clone, forestStage, backgroundMusic = menuLoop()
 	fightLoop(leaf, clone, forestStage, backgroundMusic)
+	pygame.mixer.music.fadeout(500)

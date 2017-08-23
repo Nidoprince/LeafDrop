@@ -567,7 +567,6 @@ class LeafState(FightState):
 				self.frame2+=1
 				if(self.frame2 == 10+self.attackLag):
 					self.state = "jumping"
-				elif(self.frame2 == 7):
 					self.isHurting = False
 				elif(self.frame2 == 6):
 					self.currentImage = self.jAttack1Image[3]
