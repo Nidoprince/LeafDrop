@@ -169,14 +169,30 @@ def fightLoop(play1, play2, stageIn, music):
 
 def menuLoop():
 	state = "mainMenu"
-	menuOptions = 4
+	mainMenuOptions = 5
+	menuOptions = mainMenuOptions
 	spacePressed = False
 	menuScroll = pygame.image.load("MenuScroll.bmp").convert()
 	counter = 0
 	menuLocation = 0
+	scrollValue = 0
+	text = pygame.font.Font(None, 15)
+	f = open("credits.txt", "r")
+	creditMessage = [f.readline()]
+	twende = True
+	while(twende):
+		temp = f.readline().strip()
+		if(temp == "###"):
+			twende = False
+		else:
+			creditMessage.append(temp)
+	credits = [text.render(a,False,WHITE) for a in creditMessage]
+	textScreen = pygame.Surface((300,10*len(credits)))
+	for x in range(len(credits)):
+		textScreen.blit(credits[x],(0,10*x))
 	
 	def menuRun(which):
-		nonlocal state,spacePressed,menuOptions,menuLocation
+		nonlocal state,spacePressed,menuOptions,menuLocation,scrollValue
 		if(state == "mainMenu"):
 			if(which == 0):
 				spacePressed = True
@@ -186,24 +202,32 @@ def menuLoop():
 				menuLocation = 0
 			elif(which == 2):
 				state = "credits"
-				menuOptions = 2
+				menuOptions = 1
 				menuLocation = 0
+				scrollValue = 0
 			elif(which == 3):
+				state = "options"
+				menuOptions = 1
+				menuLocation = 0
+			elif(which == 4):
 				sys.exit()
 		elif(state == "help"):
 			if(which == 0):
 				True
 			elif(which == 1):
 				state = "mainMenu"
-				menuOptions = 4
+				menuOptions = mainMenuOptions
 				menuLocation = 1
 		elif(state == "credits"):
 			if(which == 0):
-				True
-			elif(which == 1):
 				state = "mainMenu"
-				menuOptions = 4
+				menuOptions = mainMenuOptions
 				menuLocation = 2
+		elif(state == "options"):
+			if(which == 0):
+				state = "mainMenu"
+				menuOptions = mainMenuOptions
+				menuLocation = 3
 				
 	while not spacePressed:
 		clock.tick(frameRate)
@@ -227,25 +251,30 @@ def menuLoop():
 			screen.blit(menuScroll,(0,600-2*counter3//3),(counter2,0,600,300))
 			screen.blit(menuScroll,(600-counter2,600-2*counter3//3),(0,0,600,300))
 		if(state == "mainMenu"):
-			for x in range(4):
+			for x in range(menuOptions):
 				if(x == menuLocation):
-					pygame.draw.rect(screen,GREEN,(190,50+50*x,200,45))
+					pygame.draw.rect(screen,GREEN,(190,50+40*x,200,35))
 				else:
-					pygame.draw.rect(screen,GREEN,(200,50+50*x,200,45))
+					pygame.draw.rect(screen,GREEN,(200,50+40*x,200,35))
 		elif(state == "help"):
 			pygame.draw.rect(screen,BLUE,(100, 30, 400, 240))
-			for x in range(2):
+			for x in range(menuOptions):
 				if(x == menuLocation):
 					pygame.draw.rect(screen,RED,(390,180+40*x,90,35))
 				else:
 					pygame.draw.rect(screen,RED,(400,180+40*x,90,35))					
 		elif(state == "credits"):
+			scrollValue = (scrollValue+1)%(10*len(credits))
 			pygame.draw.rect(screen,BLACK,(100, 30, 400, 240))
-			for x in range(2):
+			screen.blit(textScreen, (110, 40), (0,scrollValue,280,220))
+			pygame.draw.rect(screen,RED,(400,220,90,35))
+		elif(state == "options"):
+			pygame.draw.rect(screen,RED,(100, 30, 400, 240))
+			for x in range(menuOptions):
 				if(x == menuLocation):
-					pygame.draw.rect(screen,RED,(390,180+40*x,90,35))
+					pygame.draw.rect(screen,BLACK,(390,180+40*x,90,35))
 				else:
-					pygame.draw.rect(screen,RED,(400,180+40*x,90,35))
+					pygame.draw.rect(screen,BLACK,(400,180+40*x,90,35))
 		
 		pygame.display.flip()
 		

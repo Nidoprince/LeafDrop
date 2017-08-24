@@ -1,0 +1,74 @@
+
+
+
+
+
+
+
+|  
+|  
+|  
+|      LEAFDROP
+|  
+|     ^
+|    / \
+|   / | \
+|   |\|/|  
+|   | | |  
+|   |\|/|  
+|   \_|_/
+|     |  
+|     )
+|  
+|  Produced by Micah Mahlke Workman
+|  
+|  
+|  Software Team
+|  -------------
+|  Lead Programmer:  Micah Mahlke Workman
+|  
+|  
+|  Graphics Team
+|  -------------
+|  Character Designer:  Micah Mahlke Workman
+|  Level Designer:  Micah Mahlke Workman
+|  Pixel Art:  Micah Mahlke Workman
+|  Assistant Pixel Artist: John Wappelhorst
+|  Art Design Cohesion Specialist:  Kalin Warford
+|  
+|  
+|  Music Team
+|  -------------
+|  Composer:  Micah Mahlke Workman
+|  Sound Technition:  Micah Mahlke Workman
+|  SFX Recorder:  Micah Mahlke Workman
+|  
+|  
+|  Game Design Team
+|  -------------
+|  Game Designer:  Micah Mahlke Workman
+|  Balance Specialist:  Micah Mahlke Workman
+|  Alpha Testers:  Micah Mahlke Workman
+|                  Gillian Ziegler
+|  
+|  
+|  
+|  Special Thanks:
+|  Pygame Engine and Tutorials
+|  Open MPT Music Editor and Tutorials
+|  Stack Overflow
+|  Sarah Zipkin
+|  Skylar Downes
+|  John Wappelhorst
+|  Kalin Warford
+|  Micah Mahlke Workman
+|  
+
+
+
+
+Thanks for playing!
+
+
+
+###
