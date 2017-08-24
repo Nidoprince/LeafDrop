@@ -168,22 +168,85 @@ def fightLoop(play1, play2, stageIn, music):
 		pygame.display.flip()	
 
 def menuLoop():
+	state = "mainMenu"
+	menuOptions = 4
 	spacePressed = False
 	menuScroll = pygame.image.load("MenuScroll.bmp").convert()
 	counter = 0
+	menuLocation = 0
+	
+	def menuRun(which):
+		nonlocal state,spacePressed,menuOptions,menuLocation
+		if(state == "mainMenu"):
+			if(which == 0):
+				spacePressed = True
+			elif(which == 1):
+				state = "help"
+				menuOptions = 2
+				menuLocation = 0
+			elif(which == 2):
+				state = "credits"
+				menuOptions = 2
+				menuLocation = 0
+			elif(which == 3):
+				sys.exit()
+		elif(state == "help"):
+			if(which == 0):
+				True
+			elif(which == 1):
+				state = "mainMenu"
+				menuOptions = 4
+				menuLocation = 1
+		elif(state == "credits"):
+			if(which == 0):
+				True
+			elif(which == 1):
+				state = "mainMenu"
+				menuOptions = 4
+				menuLocation = 2
+				
 	while not spacePressed:
 		clock.tick(frameRate)
-		counter = (counter + 1)%600
+		counter = (counter + 1)%1800
+		counter2 = counter%600
+		counter3 = counter%900
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT: sys.exit()
 			if event.type == pygame.KEYDOWN: #Buttons pressed
 				if event.key == pygame.K_SPACE:
 					spacePressed = True
-		screen.blit(menuScroll,(0,0),(counter,counter,600,300))
-		screen.blit(menuScroll,(600-counter,0),(0,counter,600,300))
-		if(counter>=300):
-			screen.blit(menuScroll,(0,600-counter),(counter,0,600,300))
-			screen.blit(menuScroll,(600-counter,600-counter),(0,0,600,300))
+				if event.key == pygame.K_DOWN:
+					menuLocation = (menuLocation + 1)%menuOptions
+				if event.key == pygame.K_UP:
+					menuLocation = (menuLocation - 1)%menuOptions
+				if event.key == pygame.K_COMMA:
+					menuRun(menuLocation)
+		screen.blit(menuScroll,(0,0),(counter2,2*counter3//3,600,300))
+		screen.blit(menuScroll,(600-counter2,0),(0,2*counter3//3,600,300))
+		if(counter>=450):
+			screen.blit(menuScroll,(0,600-2*counter3//3),(counter2,0,600,300))
+			screen.blit(menuScroll,(600-counter2,600-2*counter3//3),(0,0,600,300))
+		if(state == "mainMenu"):
+			for x in range(4):
+				if(x == menuLocation):
+					pygame.draw.rect(screen,GREEN,(190,50+50*x,200,45))
+				else:
+					pygame.draw.rect(screen,GREEN,(200,50+50*x,200,45))
+		elif(state == "help"):
+			pygame.draw.rect(screen,BLUE,(100, 30, 400, 240))
+			for x in range(2):
+				if(x == menuLocation):
+					pygame.draw.rect(screen,RED,(390,180+40*x,90,35))
+				else:
+					pygame.draw.rect(screen,RED,(400,180+40*x,90,35))					
+		elif(state == "credits"):
+			pygame.draw.rect(screen,BLACK,(100, 30, 400, 240))
+			for x in range(2):
+				if(x == menuLocation):
+					pygame.draw.rect(screen,RED,(390,180+40*x,90,35))
+				else:
+					pygame.draw.rect(screen,RED,(400,180+40*x,90,35))
+		
 		pygame.display.flip()
 		
 		
