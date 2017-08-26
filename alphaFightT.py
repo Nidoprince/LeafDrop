@@ -176,6 +176,22 @@ def menuLoop():
 	counter = 0
 	menuLocation = 0
 	scrollValue = 0
+	menuText = pygame.font.Font('couriercode-roman.ttf', 25)
+	menuText.set_bold(True)
+	menuText.set_italic(True)
+	versusText = menuText.render("Versus",False,RED)
+	helpText = menuText.render("Help",False,RED)
+	creditsText = menuText.render("Credits",False,RED)
+	optionsText = menuText.render("Options",False,RED)
+	quitText = menuText.render("Quit",False,RED)
+	menuTexts = [versusText,helpText,creditsText,optionsText,quitText]
+	
+	subMenuText = pygame.font.Font('couriercode-roman.ttf', 20)
+	subMenuText.set_bold(True)
+	subMenuText.set_italic(True)
+	returnText = subMenuText.render("Return",False,PURPLE)
+	 
+	
 	text = pygame.font.Font('couriercode-roman.ttf', 12)
 	f = open("credits.txt", "r")
 	creditMessage = [f.readline()]
@@ -254,8 +270,10 @@ def menuLoop():
 			for x in range(menuOptions):
 				if(x == menuLocation):
 					pygame.draw.rect(screen,GREEN,(190,50+40*x,200,35))
+					screen.blit(menuTexts[x],(240,55+40*x))
 				else:
 					pygame.draw.rect(screen,GREEN,(200,50+40*x,200,35))
+					screen.blit(menuTexts[x],(250,55+40*x))
 		elif(state == "help"):
 			pygame.draw.rect(screen,BLUE,(100, 30, 400, 240))
 			for x in range(menuOptions):
@@ -267,7 +285,8 @@ def menuLoop():
 			scrollValue = (scrollValue+1)%(15*len(credits))
 			pygame.draw.rect(screen,BLACK,(50, 30, 500, 240))
 			screen.blit(textScreen, (60, 40), (0,scrollValue,420,220))
-			pygame.draw.rect(screen,RED,(450,220,90,35))
+			pygame.draw.rect(screen,BLUE,(430,225,110,35))
+			screen.blit(returnText,(445,230))
 		elif(state == "options"):
 			pygame.draw.rect(screen,RED,(100, 30, 400, 240))
 			for x in range(menuOptions):
