@@ -1,0 +1,154 @@
+LeafDrop is a fighting game 
+in the tradition of Street Fighter 
+and Guilty Gear.  It uses similar 
+mechanics to those games while
+adding something of its own 
+flare as well.
+
+
+
+1/14
+##
+The basic goal is to defeat 
+the opponent by reducing their 
+healthto zero before they do 
+the same to you.  You do so by 
+using two kinds of attacks in 
+three different positions.  You 
+also have access to a few special 
+attacks, depending upon your 
+character.
+2/14
+##
+The two types of attacks are 
+"strike"and "kick".  Strike 
+attacks are more powerful, 
+but slower.  Kicks are faster
+but have shorter range and 
+leave you vulnerable to a 
+counterattack in a way
+that strikes do not.
+
+3/14
+##
+You can kick or strike while 
+standing,crouching, or jumping.  
+The three stances have something 
+of a rock, paper, scizzors 
+relationship due to the rules 
+of blocking.
+
+
+
+4/14
+##
+A character may block by holding 
+the direction button away from 
+the foe. Attacks striking a 
+blocking foe will deal no damage 
+and will leave the attacker 
+vulnerable for a counterattack.
+Each type of block has a specific 
+weakness however, a type of attack 
+that can harm through the block.
+5/14
+##
+For crouching, the weakness is 
+jumpingattacks.  For standing, 
+the weakness is crouching attacks.  
+Jumping characters cannot block, 
+but they are also out of range 
+of most crouching attacks.  
+
+
+
+6/14
+##
+Controls
+Left      - Left Arrow     or A
+Right     - Right Arrow    or D
+Jump      - Up Arrow       or W
+Crouch    - Down Arrow     or S
+Strike    - ,              or V
+Kick      - .              or B
+
+
+7/14
+##
+Characters and Special Attacks
+------------------------------
+Each character will have special
+attacks and mechanics in addition
+to this basic interplay.  Special
+attacks are typically performed 
+by entering specific key combos.
+
+
+8/14
+##
+Leaf
+----
+Leaf is a character with a long
+sword and reletively short range
+kicks.  He also uses leaves as 
+ammunition to launch ranged and
+gap closing attacks.  
+
+
+9/14
+##
+He starts with three leaves in 
+a fight, and can potentially go 
+up to five.  Each use of a 
+special consumes a leaf, while
+they can be restored by catching
+enemy leaves, taking damage, or
+engaging in a peaceful reflection
+upon nature.
+
+10/14
+##
+Leaf has two special attacks.
+His first is called HiNoTanken.
+He throws one of his leaves as 
+a ranged attack.  This attack 
+isperformed by doing Down, 
+Down and Forward, Forward, 
+then Strike. This attack is 
+considered a standing strike.
+
+11/14
+##
+Leaf's second special attack is 
+not yet implemented into the game.
+
+
+
+
+
+
+
+12/14
+##
+Fall
+----
+Fall is exactly the same as Leaf,
+except he is orange.
+
+
+
+
+
+13/14
+##
+Hope you have fun with this game.
+If you have any questions, don't
+hesitate to contact me at 
+Nidoprince@gmail.com
+
+
+
+
+
+14/14
+###

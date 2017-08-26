@@ -169,7 +169,7 @@ def fightLoop(play1, play2, stageIn, music):
 
 def menuLoop():
 	state = "mainMenu"
-	mainMenuOptions = 5
+	mainMenuOptions = 4
 	menuOptions = mainMenuOptions
 	spacePressed = False
 	menuScroll = pygame.image.load("MenuScroll.bmp").convert()
@@ -182,15 +182,39 @@ def menuLoop():
 	versusText = menuText.render("Versus",False,RED)
 	helpText = menuText.render("Help",False,RED)
 	creditsText = menuText.render("Credits",False,RED)
-	optionsText = menuText.render("Options",False,RED)
 	quitText = menuText.render("Quit",False,RED)
-	menuTexts = [versusText,helpText,creditsText,optionsText,quitText]
+	menuTexts = [versusText,helpText,creditsText,quitText]
 	
 	subMenuText = pygame.font.Font('couriercode-roman.ttf', 20)
 	subMenuText.set_bold(True)
 	subMenuText.set_italic(True)
 	returnText = subMenuText.render("Return",False,PURPLE)
-	 
+	nextText = subMenuText.render("Next",False,PURPLE)
+	backText = subMenuText.render("Back",False,PURPLE)
+	helpTexts = [nextText,backText,returnText]
+	
+	pageText = pygame.font.Font('couriercode-roman.ttf', 15)	
+	e = open("help.txt", "r")
+	pages = []
+	twende = True
+	while(twende):
+		endelea = True
+		page = []
+		while(endelea):
+			temp = e.readline().strip()
+			if(temp == "###"):
+				twende = False
+				endelea = False
+			elif(temp == "##"):
+				endelea = False
+			else:
+				page.append(temp)
+		canvas = pygame.Surface((500,20*len(page)))
+		canvas.fill(PURPLE)
+		for x in range(len(page)):
+			canvas.blit(pageText.render(page[x],False,BLACK),(0,20*x))
+		pages.append(canvas)
+	e.close()
 	
 	text = pygame.font.Font('couriercode-roman.ttf', 12)
 	f = open("credits.txt", "r")
@@ -202,6 +226,7 @@ def menuLoop():
 			twende = False
 		else:
 			creditMessage.append(temp)
+	f.close()
 	credits = [text.render(a,False,WHITE) for a in creditMessage]
 	textScreen = pygame.Surface((500,15*len(credits)))
 	for x in range(len(credits)):
@@ -214,23 +239,22 @@ def menuLoop():
 				spacePressed = True
 			elif(which == 1):
 				state = "help"
-				menuOptions = 2
+				menuOptions = 3
 				menuLocation = 0
+				scrollValue = 0
 			elif(which == 2):
 				state = "credits"
 				menuOptions = 1
 				menuLocation = 0
 				scrollValue = 0
 			elif(which == 3):
-				state = "options"
-				menuOptions = 1
-				menuLocation = 0
-			elif(which == 4):
 				sys.exit()
 		elif(state == "help"):
 			if(which == 0):
-				True
+				scrollValue = (scrollValue+1)%len(pages)
 			elif(which == 1):
+				scrollValue = (scrollValue-1)%len(pages)
+			elif(which == 2):
 				state = "mainMenu"
 				menuOptions = mainMenuOptions
 				menuLocation = 1
@@ -269,31 +293,28 @@ def menuLoop():
 		if(state == "mainMenu"):
 			for x in range(menuOptions):
 				if(x == menuLocation):
-					pygame.draw.rect(screen,GREEN,(190,50+40*x,200,35))
-					screen.blit(menuTexts[x],(240,55+40*x))
+					pygame.draw.rect(screen,GREEN,(190,70+40*x,200,35))
+					screen.blit(menuTexts[x],(240,75+40*x))
 				else:
-					pygame.draw.rect(screen,GREEN,(200,50+40*x,200,35))
-					screen.blit(menuTexts[x],(250,55+40*x))
+					pygame.draw.rect(screen,GREEN,(200,70+40*x,200,35))
+					screen.blit(menuTexts[x],(250,75+40*x))
 		elif(state == "help"):
-			pygame.draw.rect(screen,BLUE,(100, 30, 400, 240))
+			pygame.draw.rect(screen,BLUE,(50, 30, 500, 240))
+			pygame.draw.rect(screen,PURPLE,(60,40,350,220))
+			screen.blit(pages[scrollValue],(70,55),(0,0,330,200))
 			for x in range(menuOptions):
 				if(x == menuLocation):
-					pygame.draw.rect(screen,RED,(390,180+40*x,90,35))
+					pygame.draw.rect(screen,BLACK,(420,145+40*x,110,35))
+					screen.blit(helpTexts[x],(435,150+40*x))
 				else:
-					pygame.draw.rect(screen,RED,(400,180+40*x,90,35))					
+					pygame.draw.rect(screen,BLACK,(430,145+40*x,110,35))	
+					screen.blit(helpTexts[x],(445,150+40*x))
 		elif(state == "credits"):
 			scrollValue = (scrollValue+1)%(15*len(credits))
 			pygame.draw.rect(screen,BLACK,(50, 30, 500, 240))
 			screen.blit(textScreen, (60, 40), (0,scrollValue,420,220))
 			pygame.draw.rect(screen,BLUE,(430,225,110,35))
 			screen.blit(returnText,(445,230))
-		elif(state == "options"):
-			pygame.draw.rect(screen,RED,(100, 30, 400, 240))
-			for x in range(menuOptions):
-				if(x == menuLocation):
-					pygame.draw.rect(screen,BLACK,(390,180+40*x,90,35))
-				else:
-					pygame.draw.rect(screen,BLACK,(400,180+40*x,90,35))
 		
 		pygame.display.flip()
 		
