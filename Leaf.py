@@ -76,11 +76,11 @@ class LeafState(FightState):
 		self.ammoImage = pygame.image.load("Leaf/LeafAmmo.bmp").convert()
 		self.ammoImage.set_colorkey(RED)
 		for x in range(3): self.ammo.append(self.ammoImage)
-		self.faceImage = pygame.image.load("Leaf/LeafFace.bmp")
+		self.faceImage = pygame.image.load("Leaf/LeafFace.bmp").convert()
 		self.faceImage.set_colorkey(RED)
-		self.faceHitImage = pygame.image.load("Leaf/LeafFaceHit.bmp")
+		self.faceHitImage = pygame.image.load("Leaf/LeafFaceHit.bmp").convert()
 		self.faceHitImage.set_colorkey(RED)
-		self.faceBlockImage = pygame.image.load("Leaf/LeafFaceBlock.bmp")
+		self.faceBlockImage = pygame.image.load("Leaf/LeafFaceBlock.bmp").convert()
 		self.faceBlockImage.set_colorkey(RED)
 		
 		#And here is all the multiframe animation data setting

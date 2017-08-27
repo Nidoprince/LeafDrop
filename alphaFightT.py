@@ -317,15 +317,85 @@ def menuLoop():
 			screen.blit(returnText,(445,230))
 		
 		pygame.display.flip()
+
+	return characterSelect()
+
+def characterSelect():
+	p1Lock = False
+	p2Lock = False
+	p1Pos = [0,0]
+	p2Pos = [1,0]
+	leafPic = pygame.image.load("Leaf/LeafFace.bmp").convert()
+	leafPic.set_colorkey(RED)
+	fallPic = pygame.image.load("Fall/FallFace.bmp").convert()
+	fallPic.set_colorkey(PURPLE)
+	lockPic = pygame.image.load("LockIcon.bmp").convert()
+	lockPic.set_colorkey(BLUE)
+	grid = [[[LeafState, leafPic],[False,lockPic],[False,lockPic],[False,lockPic]],[[FallState, fallPic],[False,lockPic],[False,lockPic],[False,lockPic]]]
+	while(not p1Lock or not p2Lock):
+		screen.fill(GREEN)
+		clock.tick(frameRate)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT: sys.exit()
+			if event.type == pygame.KEYDOWN: #Buttons pressed
+				if event.key == pygame.K_w:
+					test = p1Pos[0]-1
+					if(test>=0 and test<len(grid) and grid[test][p1Pos[1]][0] and not p1Lock):
+						p1Pos[0] = test
+				if event.key == pygame.K_s:
+					test = p1Pos[0]+1
+					if(test>=0 and test<len(grid) and grid[test][p1Pos[1]][0] and not p1Lock):
+						p1Pos[0] = test
+				if event.key == pygame.K_d:
+					test = p1Pos[1]+1
+					if(test>=0 and test<len(grid[0]) and grid[p1Pos[0]][test][0] and not p1Lock):
+						p1Pos[1] = test
+				if event.key == pygame.K_a:
+					test = p1Pos[1]-1
+					if(test>=0 and test<len(grid[0]) and grid[p1Pos[0]][test][0] and not p1Lock):
+						p1Pos[1] = test
+				if event.key == pygame.K_v:
+					p1Lock = not p1Lock
+				if event.key == pygame.K_DOWN:
+					test = p2Pos[0]+1
+					if(test>=0 and test<len(grid) and grid[test][p2Pos[1]][0] and not p2Lock):
+						p2Pos[0] = test
+				if event.key == pygame.K_UP:
+					test = p2Pos[0]-1
+					if(test>=0 and test<len(grid) and grid[test][p2Pos[1]][0] and not p2Lock):
+						p2Pos[0] = test
+				if event.key == pygame.K_LEFT:
+					test = p2Pos[1]-1
+					if(test>=0 and test<len(grid[0]) and grid[p2Pos[0]][test][0] and not p2Lock):
+						p2Pos[1] = test
+				if event.key == pygame.K_RIGHT:
+					test = p2Pos[1]+1
+					if(test>=0 and test<len(grid[0]) and grid[p2Pos[0]][test][0] and not p2Lock):
+						p2Pos[1] = test
+				if event.key == pygame.K_COMMA:
+					p2Lock = not p2Lock
+		for x in range(len(grid)):
+			for y in range(len(grid[0])):
+				if([x,y]==p1Pos):
+					pygame.draw.rect(screen,BLUE,(135+y*85,65+x*95,65,70))
+				if([x,y]==p2Pos):
+					pygame.draw.rect(screen,RED,(140+y*85,70+x*95,65,70))
+				pygame.draw.rect(screen,BLACK,(140+y*85,70+x*95,60,65))
+				pygame.draw.rect(screen,PURPLE,(145+y*85,75+x*95,50,55))
+				screen.blit(grid[x][y][1],(150+y*85,80+x*95))
+		pygame.display.flip()
 		
-		
+	character1 = grid[p1Pos[0]][p1Pos[1]][0]
+	character2 = grid[p2Pos[0]][p2Pos[1]][0]
+	player1 = Fighter(character1(False),100,170) # Makes fighter1
+	player2 = Fighter(character2(True),400,170) # Makes fighter2
+	return stageSelect(player1,player2)
+
+def stageSelect(player1,player2):
 	forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
 	backgroundMusic = "ForestSong.ogg"
-	leaf = Fighter(LeafState(False),100,170) # Makes fighter1
-	clone = Fighter(FallState(True),400,170) # Makes fighter2
-	return leaf, clone, forestStage, backgroundMusic
-		
-		
+	return player1, player2, forestStage, backgroundMusic
+	
 pygame.mixer.pre_init(44100,16,2,4096)
 pygame.init()
 text = pygame.font.Font(None, 20)
