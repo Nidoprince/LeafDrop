@@ -326,7 +326,7 @@ def characterSelect():
 	p1Pos = [0,0]
 	p2Pos = [1,0]
 	counter = 0
-	characterSelectScroll = pygame.image.load("CharacterSelectScroll.bmp")
+	characterSelectScroll = pygame.image.load("CharacterSelectScroll.bmp").convert()
 	leafPic = pygame.image.load("Leaf/LeafFace.bmp").convert()
 	leafPic.set_colorkey(RED)
 	fallPic = pygame.image.load("Fall/FallFace.bmp").convert()
