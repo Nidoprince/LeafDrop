@@ -325,6 +325,8 @@ def characterSelect():
 	p2Lock = False
 	p1Pos = [0,0]
 	p2Pos = [1,0]
+	counter = 0
+	characterSelectScroll = pygame.image.load("CharacterSelectScroll.bmp")
 	leafPic = pygame.image.load("Leaf/LeafFace.bmp").convert()
 	leafPic.set_colorkey(RED)
 	fallPic = pygame.image.load("Fall/FallFace.bmp").convert()
@@ -333,8 +335,15 @@ def characterSelect():
 	lockPic.set_colorkey(BLUE)
 	grid = [[[LeafState, leafPic],[False,lockPic],[False,lockPic],[False,lockPic]],[[FallState, fallPic],[False,lockPic],[False,lockPic],[False,lockPic]]]
 	while(not p1Lock or not p2Lock):
-		screen.fill(GREEN)
 		clock.tick(frameRate)
+		counter = (counter + 1)%1800
+		counter2 = counter%600
+		counter3 = counter%900
+		screen.blit(characterSelectScroll,(0,0),(counter2,2*counter3//3,600,300))
+		screen.blit(characterSelectScroll,(600-counter2,0),(0,2*counter3//3,600,300))
+		if(counter>=450):
+			screen.blit(characterSelectScroll,(0,600-2*counter3//3),(counter2,0,600,300))
+			screen.blit(characterSelectScroll,(600-counter2,600-2*counter3//3),(0,0,600,300))
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT: sys.exit()
 			if event.type == pygame.KEYDOWN: #Buttons pressed
