@@ -401,9 +401,53 @@ def characterSelect():
 	return stageSelect(player1,player2)
 
 def stageSelect(player1,player2):
-	forestStage = pygame.image.load("ForestStage.bmp").convert() #Sets background image
-	backgroundMusic = "ForestSong.ogg"
-	return player1, player2, forestStage, backgroundMusic
+	cursorPos = [0,0]
+	notReady = True
+	counter = 0
+	stageSelectScroll = pygame.image.load("StageSelectScroll.bmp").convert()
+	forestPreview = pygame.image.load("ForestStagePreview.bmp").convert()
+	unknownPreview = pygame.image.load("UnknownPreview.bmp").convert()
+	grid = [[[forestPreview, "ForestStage.bmp", "ForestSong.ogg"],[unknownPreview,False,False],[unknownPreview,False,False]],[[unknownPreview,False,False],[unknownPreview,False,False],[unknownPreview,False,False]]]
+	while notReady:
+		clock.tick(frameRate)
+		counter = (counter + 1)%1800
+		counter2 = counter%600
+		counter3 = counter%900
+		screen.blit(stageSelectScroll,(0,0),(counter2,2*counter3//3,600,300))
+		screen.blit(stageSelectScroll,(600-counter2,0),(0,2*counter3//3,600,300))
+		if(counter>=450):
+			screen.blit(stageSelectScroll,(0,600-2*counter3//3),(counter2,0,600,300))
+			screen.blit(stageSelectScroll,(600-counter2,600-2*counter3//3),(0,0,600,300))
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT: sys.exit()
+			if event.type == pygame.KEYDOWN: #Buttons pressed
+				if event.key == pygame.K_DOWN:
+					test = cursorPos[0]+1
+					if(test>=0 and test<len(grid) and grid[test][cursorPos[1]][1]):
+						cursorPos[0] = test
+				if event.key == pygame.K_UP:
+					test = cursorPos[0]-1
+					if(test>=0 and test<len(grid) and grid[test][cursorPos[1]][1]):
+						cursorPos[0] = test
+				if event.key == pygame.K_LEFT:
+					test = cursorPos[1]-1
+					if(test>=0 and test<len(grid[0]) and grid[cursorPos[0]][test][1]):
+						cursorPos[1] = test
+				if event.key == pygame.K_RIGHT:
+					test = cursorPos[1]+1
+					if(test>=0 and test<len(grid[0]) and grid[cursorPos[0]][test][1]):
+						cursorPos[1] = test
+				if event.key == pygame.K_COMMA:
+					notReady = False
+		for x in range(len(grid)):
+			for y in range(len(grid[0])):
+				if([x,y]==cursorPos):
+					pygame.draw.rect(screen,BLUE,(45+y*180,65+x*100,160,85))
+				screen.blit(grid[x][y][0],(50+y*180,70+x*100))
+		pygame.display.flip()
+	stage = pygame.image.load(grid[cursorPos[0]][cursorPos[1]][1]).convert() #Sets background image
+	backgroundMusic = grid[cursorPos[0]][cursorPos[1]][2]
+	return player1, player2, stage, backgroundMusic
 	
 pygame.mixer.pre_init(44100,16,2,4096)
 pygame.init()

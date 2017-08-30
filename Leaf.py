@@ -24,6 +24,8 @@ class LeafState(FightState):
 		self.orth = 0 #How far a character is moving left or right while jumping
 		self.walkSpeed = 14 #Determines how many pixels each step covers
 		self.ammoFired = None #Determines type of ammo used
+		self.oneWithNature = False #Detects if you are one with nature
+		self.natureCounter = 0 #A timer that keeps track of how one with nature you are.
 		
 		#Initializes all the lists for different animations' images
 		self.hitImage = [0,0]
@@ -145,6 +147,7 @@ class LeafState(FightState):
 		self.moveRemember(keypress)
 		self.isBlocking = False
 		self.passiveHeal()
+		self.oneWithNature = False
 		#Deals with keyboard input that cares about being held down as opposed to just pressed.  
 		#Also deals with adjustment nessessary if step animations interupted, because it normally only
 		#adjusts the location after each full step cycle.  
@@ -384,6 +387,7 @@ class LeafState(FightState):
 				self.move = (0,0)
 			
 			if(self.state == "idle"): #Breathing animation for when standing still
+				self.oneWithNature = True
 				self.frame = (self.frame + 1)%40
 				if(self.frame in [25,26,27,37,38,39]):
 					self.currentImage = self.breathImage[1]
@@ -428,6 +432,13 @@ class LeafState(FightState):
 					else:
 						self.move = (self.walkSpeed,0)
 			self.move = (self.move[0] + self.adjust[0],self.move[1]+self.adjust[1])
+			if(self.oneWithNature):
+				self.natureCounter+=1
+				if(self.natureCounter>100 and len(self.ammo)<5):
+					self.natureCounter = self.natureCounter - 100
+					self.ammo.append(self.ammoImage)
+			else:
+				self.natureCounter = 0
 		
 	#Checks for special attacks able to be performed and initiates them if possible
 	def specialCheckStart(self):
