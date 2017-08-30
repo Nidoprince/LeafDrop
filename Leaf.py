@@ -57,7 +57,10 @@ class LeafState(FightState):
 		self.tankenImage = [0,0,0]
 		
 		self.loadImages()
-	
+		self.swingSound1 = pygame.mixer.Sound("Leaf/SwordSwing1.ogg")
+		self.swingSound2 = pygame.mixer.Sound("Leaf/KickSwing1.ogg")
+		
+		
 	#Loads the image files in
 	def loadImages(self):
 		#Sets all the single frame animation variables for sprites and hitboxes
@@ -439,7 +442,14 @@ class LeafState(FightState):
 					self.ammo.append(self.ammoImage)
 			else:
 				self.natureCounter = 0
-		
+	
+	def attack(self):
+		FightState.attack(self)
+		if(self.state in ["punch1","cPunch1","jPunch1"]):
+			self.swingSound1.play()
+		elif(self.state in ["kick1","cKick1","jKick1"]):
+			self.swingSound2.play()
+	
 	#Checks for special attacks able to be performed and initiates them if possible
 	def specialCheckStart(self):
 		combo = False
@@ -482,7 +492,8 @@ class LeafState(FightState):
 			self.health = 0
 		if(len(self.ammo)<2):
 			self.ammo.append(self.ammoImage)
-		
+	
+	
 	#Sets appropriate state and conditions when struck by enemy.
 	def setBlock(self, punchTime, damage, ammoGrabbed = None):
 		if(self.getMetaState() == "land"):
