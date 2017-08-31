@@ -112,22 +112,22 @@ Leaf has two special attacks.
 His first is called HiNoTanken.
 He throws one of his leaves as 
 a ranged attack.  This attack 
-isperformed by doing Down, 
+is performed by doing Down, 
 Down and Forward, Forward, 
 then Strike. This attack is 
 considered a standing strike.
 
 11/14
 ##
-Leaf's second special attack is 
-not yet implemented into the game.
-
-
-
-
-
-
-
+Leaf's second special attack is
+called Bakushin.  It is a rapid
+dashing attack with the sword.
+Its very fast and powerful, but
+if it is blocked, it leaves the 
+user very vulnerable.  Its combo:
+Down, Down and Back, Back, Back 
+and Forward, Forward, then 
+Strike.  It is a standing strike.
 12/14
 ##
 Fall

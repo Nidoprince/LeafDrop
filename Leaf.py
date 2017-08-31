@@ -263,6 +263,42 @@ class LeafState(FightState):
 			elif(self.frame == 3):
 				self.currentImage = self.sAttack1Image[1]
 				self.setBoxes(self.sAttack1Boxes[1])
+		elif(self.state == "sAttack2"): #Animation when performing the Bakushin Special Attack
+			self.frame += 1
+			dash = 0
+			if(self.frame == 15+2*self.attackLag):
+				self.state = "idle"
+				self.frame = 0
+				self.currentImage = self.idleImage
+				self.setBoxes(self.idleBoxes)
+				if(self.victorious):
+					self.state = "victory"
+			elif(self.frame == 10):
+				self.isHurting = False
+			elif(self.frame in [5,6,7,8,9]):
+				dash = 25
+			elif(self.frame == 4):
+				self.currentImage = self.attack1Image[4]
+				self.setBoxes(self.attack1Boxes[4])
+				dash = 20
+			elif(self.frame == 3):
+				self.currentImage = self.attack1Image[3]
+				self.setBoxes(self.attack1Boxes[3])
+				dash = 15
+			elif(self.frame == 2):
+				self.currentImage = self.attack1Image[2]
+				self.setBoxes(self.attack1Boxes[2])
+				dash = 10
+			elif(self.frame == 1):
+				self.currentImage = self.attack1Image[1]
+				self.setBoxes(self.attack1Boxes[1])
+				dash = 5
+			if(self.attackLag>0):
+				dash = 0
+			if(self.facingLeft):
+				self.move = (-dash,0)
+			else:
+				self.move = (dash,0)
 		elif(self.state == "punch1"): #Animation when performing basic sword attack while standing
 			self.frame += 1
 			if(self.frame == 15+self.attackLag):
@@ -454,7 +490,7 @@ class LeafState(FightState):
 	
 	def attack(self):
 		FightState.attack(self)
-		if(self.state in ["punch1","cPunch1","jPunch1"]):
+		if(self.state in ["punch1","cPunch1","jPunch1","sAttack2"]):
 			self.swingSound1.play()
 		elif(self.state in ["kick1","cKick1","jKick1"]):
 			self.swingSound2.play()
@@ -465,20 +501,34 @@ class LeafState(FightState):
 		if(self.facingLeft):
 			if(self.comboMem[-4:] == ["downD","leftD","downU","punchD"]):
 				combo = "hanotanken"
+			if(self.comboMem[-6:] == ["downD","rightD","downU","leftD","rightU","punchD"]):
+				combo = "bakushin"
 		else:
 			if(self.comboMem[-4:] == ["downD","rightD","downU","punchD"]):
 				combo = "hanotanken"
+			if(self.comboMem[-6:] == ["downD","leftD","downU","rightD","leftU","punchD"]):
+				combo = "bakushin"
 		
 		if(combo == "hanotanken"):
 			if(len(self.ammo)>0):
 				self.state = "sAttack1"
 				self.currentImage = self.sAttack1Image[0]
-				self.currentBoxes = self.sAttack1Boxes[0]
+				self.setBoxes(self.sAttack1Boxes[0])
 				self.ammoFired = self.ammo[0]
 				self.ammo = self.ammo[1:]
 			else:
 				combo = False
-		
+		elif(combo == "bakushin"):
+			if(len(self.ammo)>0):
+				self.state = "sAttack2"
+				self.currentImage = self.attack1Image[0]
+				self.setBoxes(self.attack1Boxes[0])
+				self.ammo = self.ammo[1:]
+				self.attack()
+				self.attackDamage = 40
+				self.frame = 0
+			else:
+				combo = False
 		return combo
 	
 	
