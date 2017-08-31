@@ -58,7 +58,16 @@ class LeafState(FightState):
 		
 		self.loadImages()
 		self.swingSound1 = pygame.mixer.Sound("Leaf/SwordSwing1.ogg")
+		self.swingSound1.set_volume(0.5)
 		self.swingSound2 = pygame.mixer.Sound("Leaf/KickSwing1.ogg")
+		self.jumpStart = pygame.mixer.Sound("Leaf/JumpUp.ogg")
+		self.jumpStart.set_volume(0.4)
+		self.jumpEnd = pygame.mixer.Sound("Leaf/JumpLand.ogg")
+		self.jumpEnd.set_volume(0.6)
+		self.hitSound = pygame.mixer.Sound("Leaf/Hit1.ogg")
+		self.hitSound.set_volume(0.5)
+		self.blockSound = pygame.mixer.Sound("Leaf/Block1.ogg")
+		self.blockSound.set_volume(0.4)
 		
 		
 	#Loads the image files in
@@ -492,6 +501,7 @@ class LeafState(FightState):
 			self.health = 0
 		if(len(self.ammo)<2):
 			self.ammo.append(self.ammoImage)
+		self.hitSound.play()
 	
 	
 	#Sets appropriate state and conditions when struck by enemy.
@@ -504,6 +514,7 @@ class LeafState(FightState):
 			self.frame = 0
 		self.punchTimer = punchTime
 		self.isHurting = False
+		self.blockSound.play()
 		if(ammoGrabbed and len(self.ammo)<5):
 			self.ammo.append(ammoGrabbed)
 		
@@ -562,6 +573,8 @@ class LeafState(FightState):
 				self.currentImage = self.jumpImage[0]
 				self.setBoxes(self.jumpBoxes[0])
 				self.state = "jumping"
+			if(self.frame == 1):
+				self.jumpStart.play()
 			self.frame2 = 0
 			self.orth = 0
 		else: #Deals with the actual "in the air" part of jumping
@@ -613,6 +626,8 @@ class LeafState(FightState):
 					self.currentImage = self.jAttack2Image[1]
 					self.setBoxes(self.jAttack2Boxes[1])
 			self.jumpV -= 1.5 #Accelerate down
+			if(self.frame == 20):
+				self.jumpEnd.play()
 			if("punchD" in keypress and self.state == "jumping"): #Start sword swinging
 				self.state = "jPunch1"
 				self.frame2 = 0

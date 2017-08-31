@@ -281,10 +281,13 @@ def menuLoop():
 					spacePressed = True
 				if event.key == pygame.K_DOWN:
 					menuLocation = (menuLocation + 1)%menuOptions
+					menuMove.play()
 				if event.key == pygame.K_UP:
 					menuLocation = (menuLocation - 1)%menuOptions
+					menuMove.play()
 				if event.key == pygame.K_COMMA:
 					menuRun(menuLocation)
+					menuSelect.play()
 		screen.blit(menuScroll,(0,0),(counter2,2*counter3//3,600,300))
 		screen.blit(menuScroll,(600-counter2,0),(0,2*counter3//3,600,300))
 		if(counter>=450):
@@ -347,48 +350,58 @@ def characterSelect():
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT: sys.exit()
 			if event.type == pygame.KEYDOWN: #Buttons pressed
-				if event.key == pygame.K_w:
-					test = p1Pos[0]-1
-					if(test>=0 and test<len(grid) and grid[test][p1Pos[1]][0] and not p1Lock):
-						p1Pos[0] = test
-				if event.key == pygame.K_s:
-					test = p1Pos[0]+1
-					if(test>=0 and test<len(grid) and grid[test][p1Pos[1]][0] and not p1Lock):
-						p1Pos[0] = test
-				if event.key == pygame.K_d:
-					test = p1Pos[1]+1
-					if(test>=0 and test<len(grid[0]) and grid[p1Pos[0]][test][0] and not p1Lock):
-						p1Pos[1] = test
-				if event.key == pygame.K_a:
-					test = p1Pos[1]-1
-					if(test>=0 and test<len(grid[0]) and grid[p1Pos[0]][test][0] and not p1Lock):
-						p1Pos[1] = test
-				if event.key == pygame.K_v:
-					p1Lock = not p1Lock
-				if event.key == pygame.K_DOWN:
-					test = p2Pos[0]+1
-					if(test>=0 and test<len(grid) and grid[test][p2Pos[1]][0] and not p2Lock):
-						p2Pos[0] = test
-				if event.key == pygame.K_UP:
-					test = p2Pos[0]-1
-					if(test>=0 and test<len(grid) and grid[test][p2Pos[1]][0] and not p2Lock):
-						p2Pos[0] = test
-				if event.key == pygame.K_LEFT:
-					test = p2Pos[1]-1
-					if(test>=0 and test<len(grid[0]) and grid[p2Pos[0]][test][0] and not p2Lock):
-						p2Pos[1] = test
-				if event.key == pygame.K_RIGHT:
-					test = p2Pos[1]+1
-					if(test>=0 and test<len(grid[0]) and grid[p2Pos[0]][test][0] and not p2Lock):
-						p2Pos[1] = test
+				if(event.key in [pygame.K_w,pygame.K_s,pygame.K_a,pygame.K_d,pygame.K_DOWN,pygame.K_UP,pygame.K_LEFT,pygame.K_RIGHT]):
+					menuMove.play()
+					if event.key == pygame.K_w:
+						test = p1Pos[0]-1
+						if(test>=0 and test<len(grid) and grid[test][p1Pos[1]][0] and not p1Lock):
+							p1Pos[0] = test
+					if event.key == pygame.K_s:
+						test = p1Pos[0]+1
+						if(test>=0 and test<len(grid) and grid[test][p1Pos[1]][0] and not p1Lock):
+							p1Pos[0] = test
+					if event.key == pygame.K_d:
+						test = p1Pos[1]+1
+						if(test>=0 and test<len(grid[0]) and grid[p1Pos[0]][test][0] and not p1Lock):
+							p1Pos[1] = test
+					if event.key == pygame.K_a:
+						test = p1Pos[1]-1
+						if(test>=0 and test<len(grid[0]) and grid[p1Pos[0]][test][0] and not p1Lock):
+							p1Pos[1] = test
+					if event.key == pygame.K_DOWN:
+						test = p2Pos[0]+1
+						if(test>=0 and test<len(grid) and grid[test][p2Pos[1]][0] and not p2Lock):
+							p2Pos[0] = test
+					if event.key == pygame.K_UP:
+						test = p2Pos[0]-1
+						if(test>=0 and test<len(grid) and grid[test][p2Pos[1]][0] and not p2Lock):
+							p2Pos[0] = test
+					if event.key == pygame.K_LEFT:
+						test = p2Pos[1]-1
+						if(test>=0 and test<len(grid[0]) and grid[p2Pos[0]][test][0] and not p2Lock):
+							p2Pos[1] = test
+					if event.key == pygame.K_RIGHT:
+						test = p2Pos[1]+1
+						if(test>=0 and test<len(grid[0]) and grid[p2Pos[0]][test][0] and not p2Lock):
+							p2Pos[1] = test
 				if event.key == pygame.K_COMMA:
 					p2Lock = not p2Lock
+					menuSelect.play()
+				if event.key == pygame.K_v:
+					p1Lock = not p1Lock
+					menuSelect.play()
 		for x in range(len(grid)):
 			for y in range(len(grid[0])):
 				if([x,y]==p1Pos):
-					pygame.draw.rect(screen,BLUE,(135+y*85,65+x*95,65,70))
+					if(p1Lock):
+						pygame.draw.rect(screen,BLUE,(138+y*85,68+x*95,62,67))
+					else:
+						pygame.draw.rect(screen,BLUE,(135+y*85,65+x*95,65,70))
 				if([x,y]==p2Pos):
-					pygame.draw.rect(screen,RED,(140+y*85,70+x*95,65,70))
+					if(p2Lock):
+						pygame.draw.rect(screen,RED,(140+y*85,70+x*95,62,67))
+					else:
+						pygame.draw.rect(screen,RED,(140+y*85,70+x*95,65,70))
 				pygame.draw.rect(screen,BLACK,(140+y*85,70+x*95,60,65))
 				pygame.draw.rect(screen,PURPLE,(145+y*85,75+x*95,50,55))
 				screen.blit(grid[x][y][1],(150+y*85,80+x*95))
@@ -421,24 +434,27 @@ def stageSelect(player1,player2):
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT: sys.exit()
 			if event.type == pygame.KEYDOWN: #Buttons pressed
-				if event.key == pygame.K_DOWN:
-					test = cursorPos[0]+1
-					if(test>=0 and test<len(grid) and grid[test][cursorPos[1]][1]):
-						cursorPos[0] = test
-				if event.key == pygame.K_UP:
-					test = cursorPos[0]-1
-					if(test>=0 and test<len(grid) and grid[test][cursorPos[1]][1]):
-						cursorPos[0] = test
-				if event.key == pygame.K_LEFT:
-					test = cursorPos[1]-1
-					if(test>=0 and test<len(grid[0]) and grid[cursorPos[0]][test][1]):
-						cursorPos[1] = test
-				if event.key == pygame.K_RIGHT:
-					test = cursorPos[1]+1
-					if(test>=0 and test<len(grid[0]) and grid[cursorPos[0]][test][1]):
-						cursorPos[1] = test
+				if(event.key in [pygame.K_DOWN,pygame.K_UP,pygame.K_LEFT,pygame.K_RIGHT]):
+					menuMove.play()
+					if event.key == pygame.K_DOWN:
+						test = cursorPos[0]+1
+						if(test>=0 and test<len(grid) and grid[test][cursorPos[1]][1]):
+							cursorPos[0] = test
+					if event.key == pygame.K_UP:
+						test = cursorPos[0]-1
+						if(test>=0 and test<len(grid) and grid[test][cursorPos[1]][1]):
+							cursorPos[0] = test
+					if event.key == pygame.K_LEFT:
+						test = cursorPos[1]-1
+						if(test>=0 and test<len(grid[0]) and grid[cursorPos[0]][test][1]):
+							cursorPos[1] = test
+					if event.key == pygame.K_RIGHT:
+						test = cursorPos[1]+1
+						if(test>=0 and test<len(grid[0]) and grid[cursorPos[0]][test][1]):
+							cursorPos[1] = test
 				if event.key == pygame.K_COMMA:
 					notReady = False
+					menuSelect.play()
 		for x in range(len(grid)):
 			for y in range(len(grid[0])):
 				if([x,y]==cursorPos):
@@ -456,6 +472,10 @@ text = pygame.font.Font(None, 20)
 #Initialization stuff
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
+menuSelect = pygame.mixer.Sound("MenuChoose.ogg")
+menuSelect.set_volume(0.2)
+menuMove = pygame.mixer.Sound("MenuMove.ogg")
+menuMove.set_volume(0.2)
 
 while 1:
 	leaf, clone, forestStage, backgroundMusic = menuLoop()
