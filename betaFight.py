@@ -176,6 +176,10 @@ def menuLoop():
 	counter = 0
 	menuLocation = 0
 	scrollValue = 0
+	keyText = pygame.font.Font('couriercode-roman.ttf',12)
+	keyText.set_bold(True)
+	keyText.set_italic(True)
+	keyInfo = keyText.render("Move with arrows. Select with comma.",False,WHITE)
 	menuText = pygame.font.Font('couriercode-roman.ttf', 25)
 	menuText.set_bold(True)
 	menuText.set_italic(True)
@@ -301,6 +305,7 @@ def menuLoop():
 				else:
 					pygame.draw.rect(screen,GREEN,(200,70+40*x,200,35))
 					screen.blit(menuTexts[x],(250,75+40*x))
+			screen.blit(keyInfo,(10,280))
 		elif(state == "help"):
 			pygame.draw.rect(screen,BLUE,(50, 30, 500, 240))
 			pygame.draw.rect(screen,PURPLE,(60,40,350,220))
@@ -324,6 +329,11 @@ def menuLoop():
 	return characterSelect()
 
 def characterSelect():
+	keyText = pygame.font.Font('couriercode-roman.ttf',12)
+	keyText.set_bold(True)
+	keyText.set_italic(True)
+	p2Info = keyText.render("Move with arrows. Select with comma.",False,WHITE)
+	p1Info = keyText.render("Move with wasd. Select with v.",False,WHITE)
 	p1Lock = False
 	p2Lock = False
 	p1Pos = [0,0]
@@ -405,6 +415,8 @@ def characterSelect():
 				pygame.draw.rect(screen,BLACK,(140+y*85,70+x*95,60,65))
 				pygame.draw.rect(screen,PURPLE,(145+y*85,75+x*95,50,55))
 				screen.blit(grid[x][y][1],(150+y*85,80+x*95))
+				screen.blit(p1Info, (10,280))
+				screen.blit(p2Info, (300,280))
 		pygame.display.flip()
 		
 	character1 = grid[p1Pos[0]][p1Pos[1]][0]
@@ -458,7 +470,7 @@ def stageSelect(player1,player2):
 		for x in range(len(grid)):
 			for y in range(len(grid[0])):
 				if([x,y]==cursorPos):
-					pygame.draw.rect(screen,BLUE,(45+y*180,65+x*100,160,85))
+					pygame.draw.rect(screen,RED,(45+y*180,65+x*100,160,85))
 				screen.blit(grid[x][y][0],(50+y*180,70+x*100))
 		pygame.display.flip()
 	stage = pygame.image.load(grid[cursorPos[0]][cursorPos[1]][1]).convert() #Sets background image
