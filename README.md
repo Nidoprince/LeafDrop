@@ -15,6 +15,7 @@ improvements and additions to the game.
 
 Things to add:
 --A Human vs AI mode so it can be played by one player.
+--Options menu so that you can change volumes and turn off music/sfx.
 --Actual balance for the game.  As I live alone, I couldn't really fight myself,
 so while I tried to think of how to make each part balanced, I may very well
 have created a pretty broken game.  Any feedback from testing on this would 
