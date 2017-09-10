@@ -7,10 +7,14 @@ months.  I don't remember exactly when I started.  A friend passing through
 drew like maybe 30% of one of the frames of Leaf's animation.  Other than that,
 all assets were created by me, except the font, which is an open source one.
 
+Dependencies: [Python 3](https://www.python.org/downloads/), [Pygame](https://www.pygame.org/news) (`pip install pygame`)
+
+To play, clone this repository and run `python betaFight.py`.
+
 It was a great deal of fun creating this game, and I hope I can continue to 
 expand upon it, and now that I have the base game finished I am happy to 
 accept collaboration if anyone is interested.  Any feedback or suggestions
-about the direction of the game are welcome.  Below is my current ideas of 
+about the direction of the game are welcome.  Below are my current ideas for 
 improvements and additions to the game.  
 
 Things to add:
